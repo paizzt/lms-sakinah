@@ -1,13 +1,13 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #00c6ff, #0072ff); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0, 114, 255, 0.2); display: flex; justify-content: space-between; align-items: center;">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0, 114, 255, 0.2); display: flex; justify-content: space-between; align-items: center;">
     <div>
         <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-users-cog"></i> Manajemen User</h2>
         <p style="margin: 5px 0 0 0; opacity: 0.9;">Kelola akun Admin, Guru, dan Siswa.</p>
     </div>
     
-    <a href="users_tambah.php" class="btn-add" style="background: white; color: #0072ff; padding: 10px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.1); transition: 0.3s;">
+    <a href="users_tambah.php" class="btn-add" style="background: white; color: #FF8C00; padding: 10px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.1); transition: 0.3s;">
         <i class="fas fa-plus"></i> Tambah User
     </a>
 </div>

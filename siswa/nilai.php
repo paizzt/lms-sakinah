@@ -1,118 +1,121 @@
 <?php include 'header.php'; ?>
+<?php include 'sidebar.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #28a745, #20c997); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(40, 167, 69, 0.2);">
-    <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-star"></i> Rekap Nilai Akademik</h2>
-    <p style="margin: 5px 0 0 0; opacity: 0.9;">Pantau hasil belajar dan evaluasi tugasmu di sini.</p>
-</div>
+<?php
+// --- PERBAIKAN ERROR DI SINI ---
+// Kita harus mendefinisikan $id_siswa dari session user yang login
+$id_siswa = $_SESSION['id_user'];
 
-<div class="nilai-container">
+// Ambil data siswa untuk menampilkan kelas/nama di atas (Opsional)
+$q_siswa = mysqli_query($koneksi, "SELECT users.nama_lengkap, siswa_detail.nis, kelas.nama_kelas 
+                                   FROM users 
+                                   JOIN siswa_detail ON users.id_user = siswa_detail.user_id 
+                                   LEFT JOIN kelas ON siswa_detail.kelas_id = kelas.id_kelas
+                                   WHERE users.id_user='$id_siswa'");
+$d_siswa = mysqli_fetch_array($q_siswa);
+?>
 
-    <?php 
-    // 1. Ambil Daftar Mata Pelajaran di Kelas Siswa
-    $query_mapel = mysqli_query($koneksi, "SELECT * FROM mapel WHERE kelas_id='$id_kelas_siswa'");
-
-    if(mysqli_num_rows($query_mapel) == 0){
-        echo "<p style='text-align:center; color:#777;'>Belum ada mata pelajaran.</p>";
-    }
-
-    while($m = mysqli_fetch_array($query_mapel)){
-        $id_mapel = $m['id_mapel'];
-
-        // 2. Hitung Rata-rata Nilai per Mapel
-        // Ambil semua tugas di mapel ini, lalu cek nilai siswa
-        $q_avg = "SELECT AVG(pengumpulan.nilai) as rata_rata 
-                  FROM tugas 
-                  JOIN pengumpulan ON tugas.id_tugas = pengumpulan.tugas_id 
-                  WHERE tugas.mapel_id='$id_mapel' AND pengumpulan.siswa_id='$id_siswa' AND pengumpulan.nilai > 0";
-        $d_avg = mysqli_fetch_array(mysqli_query($koneksi, $q_avg));
-        $rata_rata = round($d_avg['rata_rata'], 1); // Bulatkan 1 angka belakang koma
-    ?>
-
-    <div class="card-nilai" style="background: #fff; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 25px; overflow: hidden; border: 1px solid #eee;">
-        
-        <div class="card-header-nilai" style="padding: 20px; background: #fcfcfc; border-bottom: 1px solid #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+<div class="content-body" style="margin-top: -20px;">
+    
+    <div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F39C12); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h3 style="margin: 0; color: #444; font-size: 18px;"><?php echo $m['nama_mapel']; ?></h3>
-                <span style="font-size: 13px; color: #888;">Kode: <?php echo $m['kode_mapel']; ?></span>
+                <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-star"></i> Kartu Hasil Studi</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">
+                    Nama: <b><?php echo $d_siswa['nama_lengkap']; ?></b> | 
+                    Kelas: <b><?php echo isset($d_siswa['nama_kelas']) ? $d_siswa['nama_kelas'] : '-'; ?></b>
+                </p>
             </div>
-            
-            <div style="text-align: right;">
-                <span style="display: block; font-size: 12px; color: #666;">Rata-rata</span>
-                <span style="font-size: 22px; font-weight: bold; color: <?php echo ($rata_rata >= 75) ? '#28a745' : '#dc3545'; ?>;">
-                    <?php echo ($rata_rata > 0) ? $rata_rata : '-'; ?>
-                </span>
+            <div style="font-size: 30px; opacity: 0.3;">
+                <i class="fas fa-chart-line"></i>
             </div>
         </div>
+    </div>
 
-        <div style="padding: 20px;">
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr style="border-bottom: 2px solid #eee; text-align: left;">
-                        <th style="padding: 10px; color: #555;">Tugas / Kuis</th>
-                        <th style="padding: 10px; color: #555;">Status</th>
-                        <th style="padding: 10px; color: #555;">Nilai</th>
-                        <th style="padding: 10px; color: #555;">Feedback Guru</th>
+    <div class="modern-form-card" style="padding: 0; overflow: hidden;">
+        <div class="form-header" style="padding: 20px; border-bottom: 1px solid #eee;">
+            <h3 style="margin: 0; color: #333; font-size: 18px;">
+                <i class="fas fa-list-alt" style="color: #FF8C00;"></i> Daftar Nilai Mata Pelajaran
+            </h3>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-striped" style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #FFF3E0; color: #E65100;">
+                    <tr>
+                        <th style="padding: 15px; text-align: left;">No</th>
+                        <th style="padding: 15px; text-align: left;">Mata Pelajaran</th>
+                        <th style="padding: 15px; text-align: center;">Tugas</th>
+                        <th style="padding: 15px; text-align: center;">UH</th>
+                        <th style="padding: 15px; text-align: center;">UTS</th>
+                        <th style="padding: 15px; text-align: center;">UAS</th>
+                        <th style="padding: 15px; text-align: center;">Rata-Rata</th>
+                        <th style="padding: 15px; text-align: center;">Predikat</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php 
-                    // 3. Ambil Daftar Tugas di Mapel ini
-                    $q_tugas = mysqli_query($koneksi, "SELECT * FROM tugas WHERE mapel_id='$id_mapel' ORDER BY id_tugas DESC");
-                    
-                    if(mysqli_num_rows($q_tugas) == 0){
-                        echo "<tr><td colspan='4' style='padding:15px; text-align:center; color:#999;'>Belum ada tugas di mapel ini.</td></tr>";
-                    }
+                    // Query mengambil nilai berdasarkan siswa yang login
+                    // JOIN dengan tabel mapel untuk mengambil nama mata pelajaran
+                    // Pastikan nama kolom 'siswa_id' dan 'mapel_id' sesuai dengan tabel 'nilai' Anda
+                    $no = 1;
+                    $query_nilai = mysqli_query($koneksi, "SELECT nilai.*, mapel.nama_mapel 
+                                                           FROM nilai 
+                                                           JOIN mapel ON nilai.mapel_id = mapel.id_mapel 
+                                                           WHERE nilai.siswa_id='$id_siswa' 
+                                                           ORDER BY mapel.nama_mapel ASC");
 
-                    while($t = mysqli_fetch_array($q_tugas)){
-                        // Cek apakah siswa sudah mengumpulkan
-                        $q_kumpul = mysqli_query($koneksi, "SELECT * FROM pengumpulan WHERE tugas_id='".$t['id_tugas']."' AND siswa_id='$id_siswa'");
-                        $kumpul = mysqli_fetch_array($q_kumpul);
-                        $sudah_kumpul = mysqli_num_rows($q_kumpul) > 0;
+                    if(mysqli_num_rows($query_nilai) > 0){
+                        while($n = mysqli_fetch_array($query_nilai)){
+                            
+                            // Hitung Rata-rata (Contoh sederhana: (Tugas+UH+UTS+UAS)/4)
+                            // Sesuaikan rumus jika di database sudah ada kolom rata-rata
+                            $tugas = $n['nilai_tugas'];
+                            $uh    = $n['nilai_uh'];
+                            $uts   = $n['nilai_uts'];
+                            $uas   = $n['nilai_uas'];
+                            
+                            $rata  = ($tugas + $uh + $uts + $uas) / 4;
+                            $rata  = number_format($rata, 1); // Ambil 1 desimal
+
+                            // Tentukan Predikat
+                            if($rata >= 90) $grade = 'A';
+                            elseif($rata >= 80) $grade = 'B';
+                            elseif($rata >= 70) $grade = 'C';
+                            elseif($rata >= 60) $grade = 'D';
+                            else $grade = 'E';
+
+                            // Warna Badge Predikat
+                            $badge_color = ($grade == 'A' || $grade == 'B') ? '#2ecc71' : (($grade == 'C') ? '#f1c40f' : '#e74c3c');
                     ?>
-                    <tr style="border-bottom: 1px solid #f9f9f9;">
-                        <td style="padding: 15px 10px;">
-                            <b><?php echo $t['judul_tugas']; ?></b> <br>
-                            <small style="color: #999;">Deadline: <?php echo date('d M, H:i', strtotime($t['deadline'])); ?></small>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 15px; text-align: center; color: #777;"><?php echo $no++; ?></td>
+                        <td style="padding: 15px; font-weight: 500; color: #333;"><?php echo $n['nama_mapel']; ?></td>
+                        <td style="padding: 15px; text-align: center;"><?php echo $tugas; ?></td>
+                        <td style="padding: 15px; text-align: center;"><?php echo $uh; ?></td>
+                        <td style="padding: 15px; text-align: center;"><?php echo $uts; ?></td>
+                        <td style="padding: 15px; text-align: center;"><?php echo $uas; ?></td>
+                        <td style="padding: 15px; text-align: center; font-weight: bold; color: #333;"><?php echo $rata; ?></td>
+                        <td style="padding: 15px; text-align: center;">
+                            <span style="background: <?php echo $badge_color; ?>; color: white; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;">
+                                <?php echo $grade; ?>
+                            </span>
                         </td>
-                        
-                        <td style="padding: 10px;">
-                            <?php if(!$sudah_kumpul) { ?>
-                                <span style="background: #ffeeba; color: #856404; padding: 5px 10px; border-radius: 20px; font-size: 12px;">Belum Dikerjakan</span>
-                            <?php } else { ?>
-                                <span style="background: #d4edda; color: #155724; padding: 5px 10px; border-radius: 20px; font-size: 12px;">Sudah Dikumpul</span>
-                            <?php } ?>
-                        </td>
-
-                        <td style="padding: 10px;">
-                            <?php 
-                            if($sudah_kumpul && $kumpul['nilai'] > 0){
-                                echo "<b style='font-size: 16px; color: #333;'>".$kumpul['nilai']."</b>";
-                            } else if($sudah_kumpul && $kumpul['nilai'] == 0){
-                                echo "<span style='color:#999; font-size:12px;'>Menunggu Penilaian</span>";
-                            } else {
-                                echo "-";
-                            }
-                            ?>
-                        </td>
-
-                        <td style="padding: 10px; font-size: 13px; color: #666; font-style: italic;">
-                            <?php 
-                            if($sudah_kumpul && $kumpul['komentar_guru'] != ""){
-                                echo '"'.$kumpul['komentar_guru'].'"';
-                            } else {
-                                echo "-";
-                            }
-                            ?>
+                    </tr>
+                    <?php 
+                        }
+                    } else {
+                    ?>
+                    <tr>
+                        <td colspan="8" style="padding: 30px; text-align: center; color: #999; font-style: italic;">
+                            Belum ada data nilai yang diinputkan oleh guru.
                         </td>
                     </tr>
                     <?php } ?>
                 </tbody>
             </table>
         </div>
-
     </div>
-    <?php } ?>
-
 </div>
 
 <?php include 'footer.php'; ?>

@@ -1,14 +1,14 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #8e44ad, #c0392b); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #c0392b); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
     <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-calendar-alt"></i> Tahun Ajaran & Semester</h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Atur tahun ajaran yang aktif saat ini.</p>
 </div>
 
 <div class="table-responsive">
     <div style="padding: 20px; border-bottom: 1px solid #eee; display:flex; justify-content: flex-end;">
-        <a href="semester_tambah.php" class="btn-add" style="background: #8e44ad; color: white; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-size: 14px;">
+        <a href="semester_tambah.php" class="btn-add" style="background: #FF8C00; color: white; padding: 8px 20px; border-radius: 20px; text-decoration: none; font-size: 14px;">
             <i class="fas fa-plus"></i> Tambah Semester
         </a>
     </div>

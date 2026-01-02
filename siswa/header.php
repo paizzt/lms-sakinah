@@ -1,39 +1,67 @@
 <?php 
-session_start();
-// Cek validasi login siswa
-if($_SESSION['role'] != "siswa"){
-    header("location:../login.php?pesan=belum_login");
+// 1. Cek Session (Agar tidak error saat dipanggil dari berita.php)
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
 }
-include '../config/koneksi.php';
 
-$id_siswa = $_SESSION['id_user'];
-// Ambil data kelas siswa
-$query_kelas = mysqli_query($koneksi, "SELECT * FROM siswa_detail WHERE user_id='$id_siswa'");
-$data_kelas = mysqli_fetch_assoc($query_kelas);
-
-if(mysqli_num_rows($query_kelas) == 0){
-    echo "<div style='padding:20px;'><h3>Maaf, Anda belum terdaftar di kelas manapun. Hubungi Admin.</h3> <a href='../logout.php'>Logout</a></div>";
+// 2. Cek Login Siswa
+if(!isset($_SESSION['role']) || $_SESSION['role'] != "siswa"){
+    // Redirect Login (Fleksibel Path)
+    $login_path = file_exists("../login.php") ? "../login.php" : "login.php";
+    header("location:".$login_path."?pesan=belum_login");
     exit();
 }
-$id_kelas_siswa = $data_kelas['kelas_id'];
+
+// 3. Cek Koneksi (Agar tidak error path include)
+if(!isset($koneksi)){
+    include '../config/koneksi.php';
+}
+
+// Ambil data siswa
+$id_siswa_login = $_SESSION['id_user'];
+$cek_kelas = mysqli_query($koneksi, "SELECT kelas_id FROM siswa_detail WHERE user_id='$id_siswa_login'");
+$data_k = mysqli_fetch_assoc($cek_kelas);
+$id_kelas_siswa = isset($data_k['kelas_id']) ? $data_k['kelas_id'] : '';
+
+// LOGIKA FOTO PROFIL
+$q_foto = mysqli_query($koneksi, "SELECT foto_profil FROM users WHERE id_user='$id_siswa_login'");
+$d_foto = mysqli_fetch_assoc($q_foto);
+$foto_db = isset($d_foto['foto_profil']) ? $d_foto['foto_profil'] : '';
+
+// Perbaiki path gambar berdasarkan lokasi file pemanggil
+$path_prefix = file_exists("../assets") ? "../" : "";
+
+if($foto_db == "" || $foto_db == "default.jpg"){
+    $foto_tampil = $path_prefix . "assets/img/avatar-default.svg";
+} else {
+    $foto_tampil = $path_prefix . "uploads/profil/" . $foto_db;
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Siswa Dashboard - LMS Sakinah</title>
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <title>Siswa Panel - LMS Sakinah</title>    
+    
+    <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="dashboard-body">
+    
     <div class="wrapper">
+        
         <?php include 'sidebar.php'; ?>
 
         <div class="main-content">
-                <div class="top-navbar">
+            
+            <div class="top-navbar">
                 <div class="header-left">
-                    <h2>Ruang Belajar Siswa</h2>
+                    <button class="btn-toggle-sidebar" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h2>Ruang Siswa</h2>
                 </div>
                 
                 <div class="header-right">
@@ -42,55 +70,28 @@ $id_kelas_siswa = $data_kelas['kelas_id'];
                             <span><?php echo $_SESSION['nama_lengkap']; ?></span>
                             <small>Siswa</small>
                         </div>
-                        <div class="user-avatar" style="background-color: #28a745;">
-                            <?php echo substr($_SESSION['nama_lengkap'], 0, 1); ?>
-                        </div>
+                        
+                        <img src="<?php echo $foto_tampil; ?>" alt="Profil" 
+                             style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid #eee; background: #fff;">
                     </div>
 
                     <button class="btn-menu-action" onclick="toggleMenu()">
-                        <i class="fas fa-bars"></i>
+                        <i class="fas fa-chevron-down"></i>
                     </button>
 
                     <div class="action-dropdown" id="actionMenu">
                         <ul class="menu-list">
-                            <li>
-                                <a href="profile.php" class="menu-link">
-                                    <i class="fas fa-user"></i> Profile
-                                </a>
-                            </li>
-                            <li>
-                                <a href="javascript:void(0);" onclick="toggleNewsModal()" class="menu-link">
-                                    <i class="fas fa-newspaper"></i> Berita Sekolah
-                                </a>
-                            </li>
+                            <li><a href="profile.php" class="menu-link"><i class="fas fa-id-card"></i> Profil Saya</a></li>
+                            <li><a href="javascript:void(0);" onclick="toggleNewsModal()" class="menu-link"><i class="fas fa-newspaper"></i> Berita Sekolah</a></li>
                             <hr style="border:0; border-top:1px solid #eee; margin: 8px 0;">
-                            <li>
-                                <a href="../logout.php" class="menu-link" style="color: #dc3545;">
-                                    <i class="fas fa-sign-out-alt"></i> Log out
-                                </a>
-                            </li>
+                            <li><a href="<?php echo $path_prefix; ?>logout.php" class="menu-link" style="color: #dc3545;"><i class="fas fa-sign-out-alt"></i> Keluar</a></li>
                         </ul>
                     </div>
                 </div>
             </div>
 
             <script>
-                function toggleMenu() {
-                    var menu = document.getElementById("actionMenu");
-                    menu.classList.toggle("active");
-                }
-                
-                // Menutup menu jika klik di luar
-                window.onclick = function(event) {
-                    if (!event.target.matches('.btn-menu-action') && !event.target.matches('.btn-menu-action i')) {
-                        var dropdowns = document.getElementsByClassName("action-dropdown");
-                        for (var i = 0; i < dropdowns.length; i++) {
-                            var openDropdown = dropdowns[i];
-                            if (openDropdown.classList.contains('active')) {
-                                openDropdown.classList.remove('active');
-                            }
-                        }
-                    }
-                }
+                function toggleMenu() { document.getElementById("actionMenu").classList.toggle("active"); }
             </script>
+
             <div class="content-body">

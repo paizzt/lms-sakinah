@@ -6,7 +6,7 @@ $kelas_pilih = isset($_GET['kelas_id']) ? $_GET['kelas_id'] : '';
 $tgl_pilih = isset($_GET['tanggal']) ? $_GET['tanggal'] : date('Y-m-d');
 ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #4b6cb7, #182848); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #182848); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
     <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-user-check"></i> Rekap Absensi</h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Lihat laporan kehadiran siswa per kelas.</p>
 </div>

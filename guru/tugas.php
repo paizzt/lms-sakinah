@@ -1,6 +1,6 @@
 <?php include 'header.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #f83600, #f9d423); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(249, 212, 35, 0.3); display: flex; justify-content: space-between; align-items: center;">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(249, 212, 35, 0.3); display: flex; justify-content: space-between; align-items: center;">
     <div>
         <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-clipboard-list"></i> Manajemen Tugas & Kuis</h2>
         <p style="margin: 5px 0 0 0; opacity: 0.9;">Buat evaluasi dan pantau pengumpulan tugas siswa.</p>

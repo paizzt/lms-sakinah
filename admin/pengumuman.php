@@ -1,75 +1,99 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #ff9966, #ff5e62); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 94, 98, 0.2); display: flex; justify-content: space-between; align-items: center;">
-    <div>
-        <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-bullhorn"></i> Pengumuman & Berita</h2>
-        <p style="margin: 5px 0 0 0; opacity: 0.9;">Kelola informasi penting untuk warga sekolah.</p>
-    </div>
-    
-    <a href="pengumuman_tambah.php" class="btn-add" style="background: white; color: #ff5e62; padding: 10px 25px; border-radius: 30px; text-decoration: none; font-weight: bold; box-shadow: 0 5px 10px rgba(0,0,0,0.1); transition: 0.3s;">
-        <i class="fas fa-plus"></i> Buat Pengumuman
-    </a>
-</div>
+<div class="content-body" style="margin-top: -20px;">
 
-<div class="table-responsive">
-    <table class="table-modern">
-        <thead>
-            <tr>
-                <th width="5%">No</th>
-                <th width="10%">Sampul</th>
-                <th width="30%">Judul Berita</th>
-                <th>Target</th>
-                <th>Tanggal Upload</th>
-                <th width="10%" style="text-align: center;">Aksi</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php 
-            $no = 1;
-            $query = mysqli_query($koneksi, "SELECT * FROM pengumuman ORDER BY tanggal_dibuat DESC");
-            
-            while($d = mysqli_fetch_array($query)){
-                // Tentukan Gambar
-                $gambar = $d['gambar'] ? "../uploads/berita/".$d['gambar'] : "../assets/img/logo_sbs.png";
-                
-                // Tentukan Warna Badge Target
-                $target_class = "target-semua";
-                if($d['tujuan'] == 'siswa') $target_class = "target-siswa";
-                if($d['tujuan'] == 'guru') $target_class = "target-guru";
-            ?>
-            <tr>
-                <td><?php echo $no++; ?></td>
-                <td>
-                    <img src="<?php echo $gambar; ?>" class="news-thumbnail" alt="Thumb">
-                </td>
-                <td>
-                    <div style="font-weight: bold; color: #333; font-size: 15px; margin-bottom: 5px;">
-                        <?php echo $d['judul']; ?>
-                    </div>
-                    <div style="color: #888; font-size: 13px;">
-                        <?php echo substr(strip_tags($d['isi']), 0, 60) . '...'; ?>
-                    </div>
-                </td>
-                <td>
-                    <span class="badge-target <?php echo $target_class; ?>">
-                        <?php echo strtoupper($d['tujuan']); ?>
-                    </span>
-                </td>
-                <td>
-                    <div style="font-size: 13px; color: #555;">
-                        <i class="far fa-calendar-alt"></i> <?php echo date('d M Y', strtotime($d['tanggal_dibuat'])); ?>
-                    </div>
-                    <small style="color: #999;"><?php echo date('H:i', strtotime($d['tanggal_dibuat'])); ?> WIB</small>
-                </td>
-                <td style="text-align: center;">
-                    <a href="pengumuman_edit.php?id=<?php echo $d['id_pengumuman']; ?>" class="btn-action-small btn-edit"><i class="fas fa-pencil-alt"></i></a>
-                    <a href="pengumuman_hapus.php?id=<?php echo $d['id_pengumuman']; ?>" onclick="return confirm('Hapus berita ini?')" class="btn-action-small btn-delete"><i class="fas fa-trash"></i></a>
-                </td>
-            </tr>
-            <?php } ?>
-        </tbody>
-    </table>
+    <div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F39C12); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-bullhorn"></i> Kelola Pengumuman</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">Buat dan kelola informasi untuk guru dan siswa.</p>
+            </div>
+            <div>
+                <a href="pengumuman_tambah.php" class="btn-tambah" style="background: white; color: #E65100; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <i class="fas fa-plus-circle"></i> Buat Pengumuman Baru
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="modern-form-card" style="padding: 0; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-striped" style="width: 100%; border-collapse: collapse;">
+                <thead style="background: #FFF3E0; color: #E65100;">
+                    <tr>
+                        <th style="padding: 15px; width: 5%;">No</th>
+                        <th style="padding: 15px; width: 10%;">Tanggal</th>
+                        <th style="padding: 15px; width: 15%;">Tujuan</th>
+                        <th style="padding: 15px; width: 25%;">Judul & Isi</th>
+                        <th style="padding: 15px; width: 15%;">Lampiran</th>
+                        <th style="padding: 15px; width: 15%; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $no = 1;
+                    $data = mysqli_query($koneksi,"SELECT * FROM pengumuman ORDER BY id_pengumuman DESC");
+                    while($d = mysqli_fetch_array($data)){
+                    ?>
+                    <tr style="border-bottom: 1px solid #f0f0f0;">
+                        <td style="padding: 15px; vertical-align: top; color: #777;"><?php echo $no++; ?></td>
+                        <td style="padding: 15px; vertical-align: top; font-size: 13px;">
+                            <i class="far fa-calendar-alt" style="color: #FF8C00;"></i> 
+                            <?php echo date('d-m-Y', strtotime($d['tanggal_dibuat'])); ?>
+                        </td>
+                        <td style="padding: 15px; vertical-align: top;">
+                            <?php 
+                            $badge_color = ($d['tujuan'] == 'semua') ? '#2ecc71' : (($d['tujuan'] == 'guru') ? '#3498db' : '#f1c40f');
+                            $text_color = ($d['tujuan'] == 'siswa') ? '#333' : '#fff';
+                            ?>
+                            <span style="background: <?php echo $badge_color; ?>; color: <?php echo $text_color; ?>; padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                                <?php echo $d['tujuan']; ?>
+                            </span>
+                        </td>
+                        <td style="padding: 15px; vertical-align: top;">
+                            <strong style="display: block; font-size: 15px; margin-bottom: 5px; color: #333;"><?php echo $d['judul']; ?></strong>
+                            <p style="font-size: 13px; color: #666; margin: 0; line-height: 1.5;">
+                                <?php echo substr($d['isi'], 0, 100) . '...'; ?>
+                            </p>
+                        </td>
+                        <td style="padding: 15px; vertical-align: top;">
+                            <?php 
+                            if($d['file_lampiran'] == ""){
+                                echo "<span style='color: #ccc; font-style: italic; font-size: 13px;'>Tidak ada file</span>";
+                            } else {
+                                $file = $d['file_lampiran'];
+                                $ext = pathinfo($file, PATHINFO_EXTENSION);
+
+                                if(in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif'])){
+                                    // Jika Gambar
+                                    echo "<img src='../uploads/pengumuman/$file' style='width: 60px; height: 60px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd;'>";
+                                } else {
+                                    // Jika File Dokumen (PERBAIKAN KUTIP ADA DI SINI)
+                                    echo "<a href='../uploads/pengumuman/$file' target='_blank' style='text-decoration: none; color: #E65100; font-size: 13px; font-weight: 500;'>
+                                            <i class='fas fa-paperclip'></i> Download ".strtoupper($ext)."
+                                          </a>";
+                                }
+                            }
+                            ?>
+                        </td>
+                        <td style="padding: 15px; vertical-align: top; text-align: center;">
+                            <a href="pengumuman_edit.php?id=<?php echo $d['id_pengumuman']; ?>" class="btn-action edit" title="Edit" style="background: #FFF3E0; color: #E65100; padding: 8px 12px; border-radius: 6px; margin-right: 5px;">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="pengumuman_hapus.php?id=<?php echo $d['id_pengumuman']; ?>" class="btn-action delete" title="Hapus" onclick="return confirm('Yakin ingin menghapus pengumuman ini?')" style="background: #ffebee; color: #c62828; padding: 8px 12px; border-radius: 6px;">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php 
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
 </div>
 
 <?php include 'footer.php'; ?>

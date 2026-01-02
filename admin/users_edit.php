@@ -6,12 +6,11 @@ $id_user = $_GET['id'];
 $query = mysqli_query($koneksi, "SELECT * FROM users WHERE id_user='$id_user'");
 $d = mysqli_fetch_assoc($query);
 
-// Ambil data detail siswa jika role-nya siswa
-$detail = null;
-if($d['role'] == 'siswa'){
-    $q_detail = mysqli_query($koneksi, "SELECT * FROM siswa_detail WHERE user_id='$id_user'");
-    $detail = mysqli_fetch_assoc($q_detail);
-}
+// Cek apakah ada data detail siswa (meskipun sekarang bukan siswa, siapa tahu ada sisa data)
+$q_detail = mysqli_query($koneksi, "SELECT * FROM siswa_detail WHERE user_id='$id_user'");
+$detail = mysqli_fetch_assoc($q_detail);
+$nis_value = isset($detail['nis']) ? $detail['nis'] : '';
+$kelas_value = isset($detail['kelas_id']) ? $detail['kelas_id'] : '';
 ?>
 
 <div class="form-center-wrapper">
@@ -49,36 +48,42 @@ if($d['role'] == 'siswa'){
 
             <div class="form-group">
                 <label>Role (Hak Akses)</label>
-                <select name="role" class="form-control-modern" disabled style="background-color: #f0f0f0; cursor: not-allowed;">
+                <select name="role" id="roleSelect" class="form-control-modern" onchange="toggleSiswaForm()">
                     <option value="admin" <?php if($d['role']=='admin') echo 'selected'; ?>>Administrator</option>
                     <option value="guru" <?php if($d['role']=='guru') echo 'selected'; ?>>Guru</option>
                     <option value="siswa" <?php if($d['role']=='siswa') echo 'selected'; ?>>Siswa</option>
                 </select>
-                <small style="color: #d63031;">*Role user tidak dapat diubah dari menu edit.</small>
+                <small style="color: #888;">*Mengubah role akan menyesuaikan hak akses user ini.</small>
             </div>
 
-            <?php if($d['role'] == 'siswa') { ?>
-            <div style="background: #fff8e1; padding: 20px; border-radius: 10px; border: 1px solid #ffe0b2; margin-bottom: 25px;">
-                <label style="font-weight: bold; color: #f39c12; margin-bottom: 10px; display: block;">
-                    <i class="fas fa-graduation-cap"></i> Penempatan Kelas
+            <div id="formSiswa" style="background: #fff8e1; padding: 20px; border-radius: 10px; border: 1px solid #ffe0b2; margin-bottom: 25px; display: <?php echo ($d['role']=='siswa') ? 'block' : 'none'; ?>;">
+                <label style="font-weight: bold; color: #f39c12; margin-bottom: 15px; display: block;">
+                    <i class="fas fa-graduation-cap"></i> Data Lengkap Siswa
                 </label>
                 
-                <select name="kelas_id" class="form-control-modern" style="border-color: #ffe0b2;">
-                    <option value="">-- Belum Masuk Kelas --</option>
-                    <?php 
-                    $kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
-                    while($k = mysqli_fetch_array($kelas)){
-                        // Cek apakah siswa ini ada di kelas tersebut
-                        $selected = ($detail && $detail['kelas_id'] == $k['id_kelas']) ? "selected" : "";
-                    ?>
-                    <option value="<?php echo $k['id_kelas']; ?>" <?php echo $selected; ?>>
-                        <?php echo $k['nama_kelas']; ?>
-                    </option>
-                    <?php } ?>
-                </select>
-                <span class="text-hint">Pindahkan siswa ke kelas lain jika diperlukan.</span>
+                <div style="display: flex; gap: 20px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>NIS (Nomor Induk Siswa)</label>
+                        <input type="number" name="nis" class="form-control-modern" value="<?php echo $nis_value; ?>" placeholder="Wajib diisi untuk siswa">
+                    </div>
+                    
+                    <div class="form-group" style="flex: 1;">
+                        <label>Penempatan Kelas</label>
+                        <select name="kelas_id" class="form-control-modern" style="border-color: #ffe0b2;">
+                            <option value="">-- Pilih Kelas --</option>
+                            <?php 
+                            $kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+                            while($k = mysqli_fetch_array($kelas)){
+                                $selected = ($kelas_value == $k['id_kelas']) ? "selected" : "";
+                            ?>
+                            <option value="<?php echo $k['id_kelas']; ?>" <?php echo $selected; ?>>
+                                <?php echo $k['nama_kelas']; ?>
+                            </option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <?php } ?>
 
             <div class="form-actions">
                 <a href="users.php" class="btn-cancel">Batal</a>
@@ -88,5 +93,19 @@ if($d['role'] == 'siswa'){
 
     </div>
 </div>
+
+<script>
+// Fungsi untuk menampilkan/menyembunyikan form siswa berdasarkan role
+function toggleSiswaForm() {
+    var role = document.getElementById("roleSelect").value;
+    var formSiswa = document.getElementById("formSiswa");
+    
+    if (role === "siswa") {
+        formSiswa.style.display = "block";
+    } else {
+        formSiswa.style.display = "none";
+    }
+}
+</script>
 
 <?php include 'footer.php'; ?>

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 28 Des 2025 pada 11.36
+-- Waktu pembuatan: 02 Jan 2026 pada 17.03
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -38,14 +38,6 @@ CREATE TABLE `absensi` (
   `keterangan` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data untuk tabel `absensi`
---
-
-INSERT INTO `absensi` (`id_absensi`, `mapel_id`, `guru_id`, `kelas_id`, `siswa_id`, `tanggal`, `status`, `keterangan`) VALUES
-(6, 1, 2, 1, 5, '2025-12-26', '', ''),
-(7, 1, 2, 1, 6, '2025-12-26', '', '');
-
 -- --------------------------------------------------------
 
 --
@@ -65,7 +57,7 @@ CREATE TABLE `kelas` (
 INSERT INTO `kelas` (`id_kelas`, `nama_kelas`, `wali_kelas_id`) VALUES
 (1, 'X IPA 1', 2),
 (2, 'X IPS 1', 3),
-(4, 'IPA-3', 2);
+(3, 'XI IPA 1', 7);
 
 -- --------------------------------------------------------
 
@@ -75,23 +67,24 @@ INSERT INTO `kelas` (`id_kelas`, `nama_kelas`, `wali_kelas_id`) VALUES
 
 CREATE TABLE `mapel` (
   `id_mapel` int(11) NOT NULL,
-  `kode_mapel` varchar(20) NOT NULL,
+  `kode_mapel` varchar(20) DEFAULT NULL,
   `nama_mapel` varchar(100) NOT NULL,
-  `hari` enum('Senin','Selasa','Rabu','Kamis','Jumat','Sabtu') DEFAULT NULL,
-  `jam_mulai` time DEFAULT NULL,
-  `jam_selesai` time DEFAULT NULL,
   `guru_id` int(11) DEFAULT NULL,
-  `kelas_id` int(11) DEFAULT NULL
+  `kelas_id` int(11) DEFAULT NULL,
+  `hari` varchar(20) DEFAULT NULL,
+  `jam_mulai` time DEFAULT NULL,
+  `jam_selesai` time DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `mapel`
 --
 
-INSERT INTO `mapel` (`id_mapel`, `kode_mapel`, `nama_mapel`, `hari`, `jam_mulai`, `jam_selesai`, `guru_id`, `kelas_id`) VALUES
-(1, 'MTK-01', 'Matematika Wajib', 'Senin', '07:30:00', '09:00:00', 2, 1),
-(2, 'IND-01', 'Bahasa Indonesia', 'Senin', '09:15:00', '10:45:00', 3, 1),
-(3, 'MTK-02', 'Matematika Wajib', 'Selasa', '07:30:00', '09:00:00', 2, 2);
+INSERT INTO `mapel` (`id_mapel`, `kode_mapel`, `nama_mapel`, `guru_id`, `kelas_id`, `hari`, `jam_mulai`, `jam_selesai`) VALUES
+(1, 'MTK-01', 'Matematika Wajib', 2, 1, 'Senin', '07:30:00', '09:00:00'),
+(2, 'IND-01', 'Bahasa Indonesia', 3, 1, 'Selasa', '09:00:00', '10:30:00'),
+(3, 'ING-01', 'Bahasa Inggris', 7, 1, 'Rabu', '08:00:00', '09:30:00'),
+(4, 'IPA-01', 'Ilmu Pengetahuan Alam', 2, 2, 'Senin', '10:00:00', '11:30:00');
 
 -- --------------------------------------------------------
 
@@ -114,9 +107,35 @@ CREATE TABLE `materi` (
 --
 
 INSERT INTO `materi` (`id_materi`, `mapel_id`, `judul_materi`, `deskripsi`, `file_materi`, `link_materi`, `tanggal_upload`) VALUES
-(1, 1, 'Bab 1: Eksponen dan Logaritma', 'Materi dasar tentang sifat-sifat eksponen.', 'materi_dummy_eksponen.pdf', '', '2025-07-15 08:00:00'),
-(2, 1, 'Video Pembahasan Soal Logaritma', 'Silakan tonton video ini agar lebih paham cara mengerjakan soal cerita.', '', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', '2025-07-20 09:00:00'),
-(3, 2, 'Teks Laporan Hasil Observasi', 'Pengertian, struktur, dan kaidah kebahasaan teks LHO.', 'materi_dummy_lho.pdf', '', '2025-07-16 10:00:00');
+(1, 1, 'Bab 1: Eksponen dan Logaritma', 'Materi dasar tentang sifat-sifat eksponen.', 'materi_dummy.pdf', '', '2026-01-02 19:57:41'),
+(2, 2, 'Teks Laporan Hasil Observasi', 'Pengertian, struktur, dan kaidah kebahasaan teks LHO.', '', 'https://youtube.com/watch?v=video_lho', '2026-01-02 19:57:41');
+
+-- --------------------------------------------------------
+
+--
+-- Struktur dari tabel `nilai`
+--
+
+CREATE TABLE `nilai` (
+  `id_nilai` int(11) NOT NULL,
+  `siswa_id` int(11) NOT NULL,
+  `mapel_id` int(11) NOT NULL,
+  `nilai_tugas` int(11) DEFAULT 0,
+  `nilai_uh` int(11) DEFAULT 0,
+  `nilai_uts` int(11) DEFAULT 0,
+  `nilai_uas` int(11) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data untuk tabel `nilai`
+--
+
+INSERT INTO `nilai` (`id_nilai`, `siswa_id`, `mapel_id`, `nilai_tugas`, `nilai_uh`, `nilai_uts`, `nilai_uas`) VALUES
+(1, 4, 1, 85, 90, 88, 92),
+(2, 4, 2, 80, 85, 82, 88),
+(3, 4, 3, 75, 78, 80, 85),
+(4, 5, 1, 90, 92, 95, 94),
+(5, 5, 2, 88, 85, 90, 89);
 
 -- --------------------------------------------------------
 
@@ -139,7 +158,7 @@ CREATE TABLE `pengumpulan` (
 --
 
 INSERT INTO `pengumpulan` (`id_pengumpulan`, `tugas_id`, `siswa_id`, `file_siswa`, `nilai`, `komentar_guru`, `tanggal_kumpul`) VALUES
-(1, 1, 5, '1126875362_files-folder.png', 100, '', '2025-12-26 19:03:10');
+(1, 1, 4, '835815747_files-folder.png', 99, 'nda bagus', '2026-01-02 17:01:09');
 
 -- --------------------------------------------------------
 
@@ -151,8 +170,8 @@ CREATE TABLE `pengumuman` (
   `id_pengumuman` int(11) NOT NULL,
   `judul` varchar(200) NOT NULL,
   `isi` text NOT NULL,
-  `gambar` varchar(255) DEFAULT NULL,
   `tujuan` enum('semua','guru','siswa') NOT NULL,
+  `file_lampiran` varchar(255) DEFAULT NULL,
   `tanggal_dibuat` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -160,10 +179,10 @@ CREATE TABLE `pengumuman` (
 -- Dumping data untuk tabel `pengumuman`
 --
 
-INSERT INTO `pengumuman` (`id_pengumuman`, `judul`, `isi`, `gambar`, `tujuan`, `tanggal_dibuat`) VALUES
-(1, 'Libur Awal Puasa', 'Diberitahukan kepada seluruh siswa dan guru bahwa libur awal puasa dimulai tanggal 1-3 Ramadhan. Kegiatan belajar mengajar akan dimulai kembali pada hari ke-4 dengan jadwal khusus.', '', 'semua', '2025-03-01 08:00:00'),
-(2, 'Jadwal Ujian Tengah Semester', 'Ujian Tengah Semester (UTS) akan dilaksanakan mulai tanggal 20 Oktober 2025. Harap siswa mempersiapkan diri dengan baik.', '', 'siswa', '2025-10-01 09:00:00'),
-(3, 'Rapat Dewan Guru', 'Mohon kehadiran Bapak/Ibu guru di ruang rapat pada hari Sabtu pukul 10.00 WIB untuk membahas persiapan akreditasi.', '', 'guru', '2025-09-15 10:00:00');
+INSERT INTO `pengumuman` (`id_pengumuman`, `judul`, `isi`, `tujuan`, `file_lampiran`, `tanggal_dibuat`) VALUES
+(1, 'Libur Awal Puasa', 'Kegiatan belajar mengajar diliburkan selama 3 hari awal puasa.', 'semua', NULL, '2026-03-01 08:00:00'),
+(2, 'Jadwal UTS Semester Ganjil', 'UTS akan dilaksanakan mulai tanggal 20 Oktober.', 'siswa', NULL, '2026-10-01 09:00:00'),
+(3, 'Rapat Dewan Guru', 'Mohon kehadiran Bapak/Ibu guru di ruang rapat.', 'guru', NULL, '2026-09-15 10:00:00');
 
 -- --------------------------------------------------------
 
@@ -217,23 +236,21 @@ CREATE TABLE `siswa_detail` (
   `user_id` int(11) NOT NULL,
   `kelas_id` int(11) DEFAULT NULL,
   `nis` varchar(20) DEFAULT NULL,
-  `jenis_kelamin` enum('L','P') DEFAULT NULL,
   `tempat_lahir` varchar(50) DEFAULT NULL,
   `tanggal_lahir` date DEFAULT NULL,
-  `alamat` text DEFAULT NULL,
-  `no_hp` varchar(20) DEFAULT NULL,
-  `provinsi` varchar(50) DEFAULT NULL,
-  `kota` varchar(50) DEFAULT NULL
+  `alamat` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `siswa_detail`
 --
 
-INSERT INTO `siswa_detail` (`id_detail`, `user_id`, `kelas_id`, `nis`, `jenis_kelamin`, `tempat_lahir`, `tanggal_lahir`, `alamat`, `no_hp`, `provinsi`, `kota`) VALUES
-(1, 5, 1, '2025001', NULL, 'Jakarta', '2008-05-10', 'Jl. Merpati No. 10', '081234567890', NULL, NULL),
-(2, 6, 1, '2025002', NULL, 'Bandung', '2008-08-17', 'Jl. Kenari No. 5', '081298765432', NULL, NULL),
-(4, 12, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+INSERT INTO `siswa_detail` (`id_detail`, `user_id`, `kelas_id`, `nis`, `tempat_lahir`, `tanggal_lahir`, `alamat`) VALUES
+(1, 4, 1, '2025001', 'Jakarta', '2008-05-10', 'Jl. Merpati No. 10'),
+(2, 5, 1, '2025002', 'Bandung', '2008-08-17', 'Jl. Kenari No. 5'),
+(3, 6, 2, '2025003', 'Surabaya', '2008-01-20', 'Jl. Anggrek No. 3'),
+(4, 8, 1, '2025004', 'Medan', '2008-11-05', 'Jl. Melati No. 8'),
+(5, 9, 2, '2025005', 'Yogyakarta', '2008-03-15', 'Jl. Mawar No. 1');
 
 -- --------------------------------------------------------
 
@@ -256,9 +273,7 @@ CREATE TABLE `tugas` (
 --
 
 INSERT INTO `tugas` (`id_tugas`, `mapel_id`, `judul_tugas`, `deskripsi`, `deadline`, `tipe`, `file_tugas`) VALUES
-(1, 1, 'Latihan Soal Eksponen Hal 10', 'Kerjakan buku paket halaman 10 nomor 1 sampai 5. Upload jawaban dalam format PDF.', '2025-12-31 23:59:00', 'tugas', ''),
-(2, 2, 'Kuis Kebahasaan Teks LHO', 'Kerjakan kuis berikut untuk menguji pemahaman Anda tentang verba dan nomina.', '2025-12-30 12:00:00', 'kuis', ''),
-(3, 1, 'Tugas Kelompok (Sudah Lewat)', 'Tugas ini deadline-nya sudah lewat untuk testing sistem.', '2024-01-01 00:00:00', 'tugas', '');
+(1, 1, 'Latihan Eksponen', 'Kerjakan Halaman 10.', '2026-12-31 23:59:00', 'tugas', NULL);
 
 -- --------------------------------------------------------
 
@@ -282,13 +297,16 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `role`, `foto_profil`, `created_at`) VALUES
-(1, 'admin', '123', 'Administrator Utama', 'admin@sekolah.sch.id', 'admin', 'default.jpg', '2025-12-26 15:22:52'),
-(2, 'guru1', '123', 'Budi Santoso, S.Pd', 'budi@sekolah.sch.id', 'guru', 'default.jpg', '2025-12-26 15:22:52'),
-(3, 'guru2', '123', 'Siti Aminah, M.Pd', 'siti@sekolah.sch.id', 'guru', 'default.jpg', '2025-12-26 15:22:52'),
-(4, 'guru3', '123', 'Dodi Kusuma', 'dodi@sekolah.sch.id', 'guru', 'default.jpg', '2025-12-26 15:22:52'),
-(5, 'siswa1', '123', 'Ahmad Fikri', 'fikri@gmail.com', 'siswa', 'default.jpg', '2025-12-26 15:22:52'),
-(6, 'siswa2', '123', 'Dewi Sartika', 'dewi@gmail.com', 'siswa', 'default.jpg', '2025-12-26 15:22:52'),
-(12, 'didi', '123', 'doditt', 'dodittt@gmail.com', 'siswa', 'default.jpg', '2025-12-26 17:55:51');
+(1, 'admin', '123', 'Administrator Utama', 'admin@sekolah.sch.id', 'admin', 'default.jpg', '2026-01-02 11:55:42'),
+(2, 'guru1', '123', 'Budi Santoso, S.Pd', 'budi@sekolah.sch.id', 'guru', 'default.jpg', '2026-01-02 11:55:42'),
+(3, 'guru2', '123', 'Siti Aminah, M.Pd', 'siti@sekolah.sch.id', 'guru', 'default.jpg', '2026-01-02 11:55:42'),
+(4, 'siswa1', '123', 'Ahmad Fikri', 'fikri@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
+(5, 'siswa2', '123', 'Dewi Sartika', 'dewi@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
+(6, 'siswa3', '123', 'Rudi Hartono', 'rudi@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
+(7, 'guru3', '123', 'Dodi Kusuma, S.Kom', 'dodi@sekolah.sch.id', 'guru', 'default.jpg', '2026-01-02 11:55:42'),
+(8, 'siswa4', '123', 'Sinta Nuriyah', 'sinta@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
+(9, 'siswa5', '123', 'Joko Anwar', 'joko@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
+(10, 'admin2', '123', 'Staff Tata Usaha', 'tu@sekolah.sch.id', 'admin', 'default.jpg', '2026-01-02 11:55:42');
 
 --
 -- Indexes for dumped tables
@@ -298,9 +316,7 @@ INSERT INTO `users` (`id_user`, `username`, `password`, `nama_lengkap`, `email`,
 -- Indeks untuk tabel `absensi`
 --
 ALTER TABLE `absensi`
-  ADD PRIMARY KEY (`id_absensi`),
-  ADD KEY `mapel_id` (`mapel_id`),
-  ADD KEY `siswa_id` (`siswa_id`);
+  ADD PRIMARY KEY (`id_absensi`);
 
 --
 -- Indeks untuk tabel `kelas`
@@ -321,7 +337,14 @@ ALTER TABLE `mapel`
 -- Indeks untuk tabel `materi`
 --
 ALTER TABLE `materi`
-  ADD PRIMARY KEY (`id_materi`),
+  ADD PRIMARY KEY (`id_materi`);
+
+--
+-- Indeks untuk tabel `nilai`
+--
+ALTER TABLE `nilai`
+  ADD PRIMARY KEY (`id_nilai`),
+  ADD KEY `siswa_id` (`siswa_id`),
   ADD KEY `mapel_id` (`mapel_id`);
 
 --
@@ -380,25 +403,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `absensi`
 --
 ALTER TABLE `absensi`
-  MODIFY `id_absensi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_absensi` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `kelas`
 --
 ALTER TABLE `kelas`
-  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `mapel`
 --
 ALTER TABLE `mapel`
-  MODIFY `id_mapel` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_mapel` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `materi`
 --
 ALTER TABLE `materi`
-  MODIFY `id_materi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_materi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT untuk tabel `nilai`
+--
+ALTER TABLE `nilai`
+  MODIFY `id_nilai` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `pengumpulan`
@@ -428,30 +457,23 @@ ALTER TABLE `semester`
 -- AUTO_INCREMENT untuk tabel `siswa_detail`
 --
 ALTER TABLE `siswa_detail`
-  MODIFY `id_detail` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_detail` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `tugas`
 --
 ALTER TABLE `tugas`
-  MODIFY `id_tugas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_tugas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
 --
-
---
--- Ketidakleluasaan untuk tabel `absensi`
---
-ALTER TABLE `absensi`
-  ADD CONSTRAINT `absensi_ibfk_1` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id_mapel`) ON DELETE CASCADE,
-  ADD CONSTRAINT `absensi_ibfk_2` FOREIGN KEY (`siswa_id`) REFERENCES `users` (`id_user`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `kelas`
@@ -467,10 +489,11 @@ ALTER TABLE `mapel`
   ADD CONSTRAINT `mapel_ibfk_2` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id_kelas`) ON DELETE CASCADE;
 
 --
--- Ketidakleluasaan untuk tabel `materi`
+-- Ketidakleluasaan untuk tabel `nilai`
 --
-ALTER TABLE `materi`
-  ADD CONSTRAINT `materi_ibfk_1` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id_mapel`) ON DELETE CASCADE;
+ALTER TABLE `nilai`
+  ADD CONSTRAINT `nilai_ibfk_1` FOREIGN KEY (`siswa_id`) REFERENCES `users` (`id_user`) ON DELETE CASCADE,
+  ADD CONSTRAINT `nilai_ibfk_2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id_mapel`) ON DELETE CASCADE;
 
 --
 -- Ketidakleluasaan untuk tabel `pengumpulan`

@@ -1,6 +1,6 @@
 <?php include 'header.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #8e2de2, #4a00e0); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(74, 0, 224, 0.2);">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(74, 0, 224, 0.2);">
     <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-tasks"></i> Kelola RPS</h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Upload Rencana Pembelajaran Semester untuk mata pelajaran Anda.</p>
 </div>

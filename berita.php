@@ -1,82 +1,126 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Berita Sekolah - SMAIT As-Sakinah</title>
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-</head>
-<body style="background-color: #f9f9f9;">
+<?php 
+// Cek session untuk menentukan header mana yang dipakai
+session_start();
+include 'config/koneksi.php';
 
-    <nav class="landing-navbar">
-        <div class="nav-brand">
-            <a href="index.php" style="text-decoration:none; display:flex; align-items:center; gap:15px;">
-                <img src="assets/img/logo_sbs.png" alt="Logo SBS" height="50">
-                <div style="line-height: 1.2;">
-                    <span style="display:block; font-size:12px; color:#555; font-weight:600;">KEMBALI KE</span>
-                    <span style="display:block; color:#FF8C00; font-weight:800; font-size: 18px;">BERANDA</span>
-                </div>
-            </a>
-        </div>
-    </nav>
+// Tentukan Header berdasarkan role (jika login)
+if(isset($_SESSION['role'])){
+    if($_SESSION['role'] == 'admin'){
+        include 'admin/header.php';
+    } elseif($_SESSION['role'] == 'guru'){
+        include 'guru/header.php';
+    } elseif($_SESSION['role'] == 'siswa'){
+        include 'siswa/header.php';
+    }
+} else {
+    // Jika belum login (tamu), buat header sederhana manual atau redirect login
+    // Disini kita redirect ke login saja agar aman, atau Anda bisa buat header_public.php
+    header("location:login.php");
+    exit();
+}
+?>
 
-    <div style="background: #2c3e50; padding: 60px 20px; text-align: center; color: white;">
-        <h1 style="margin: 0; font-size: 42px;">Kabar Sekolah</h1>
-        <p style="opacity: 0.8; margin-top: 10px;">Informasi terbaru, prestasi, dan kegiatan SMAIT As-Sakinah</p>
+<div class="content-body" style="margin-top: -20px;">
+    
+    <div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F39C12); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; text-align: center; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
+        <h2 style="margin: 0; font-size: 28px; font-weight: 700;">Kabar Sekolah</h2>
+        <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 16px;">Informasi terbaru, prestasi, dan kegiatan SMAIT As-Sakinah</p>
     </div>
 
-    <div class="container" style="max-width: 1100px; margin: 50px auto; padding: 0 20px;">
+    <div class="row">
+        <?php 
+        // Logika Filter Berita berdasarkan Role User
+        $role = $_SESSION['role'];
+        $where_clause = "";
+
+        if($role == 'siswa'){
+            // Siswa hanya lihat pengumuman untuk 'siswa' dan 'semua'
+            $where_clause = "WHERE tujuan IN ('semua', 'siswa')";
+        } elseif($role == 'guru'){
+            // Guru hanya lihat pengumuman untuk 'guru' dan 'semua'
+            $where_clause = "WHERE tujuan IN ('semua', 'guru')";
+        }
+        // Admin melihat semua (tidak perlu WHERE tambahan)
+
+        // Query Database
+        $query = mysqli_query($koneksi, "SELECT * FROM pengumuman $where_clause ORDER BY id_pengumuman DESC");
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px;">
-            <?php 
-            include 'config/koneksi.php';
-            // Tampilkan berita untuk umum (semua)
-            $query = mysqli_query($koneksi, "SELECT * FROM pengumuman WHERE tujuan='semua' ORDER BY tanggal_dibuat DESC");
-            
-            if(mysqli_num_rows($query) == 0){
-                echo "<p style='grid-column: 1/-1; text-align: center; color: #777;'>Belum ada berita terbaru.</p>";
-            }
-
+        if(mysqli_num_rows($query) > 0){
             while($d = mysqli_fetch_array($query)){
-                // Potong isi berita biar tidak kepanjangan di card
-                $isi_singkat = substr(strip_tags($d['isi']), 0, 100) . '...';
-                $gambar = $d['gambar'] ? "uploads/berita/".$d['gambar'] : "assets/img/logo_sbs.png"; // Default image jika kosong
-            ?>
-            
-            <div style="background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; display:flex; flex-direction:column;">
-                
-                <div style="height: 200px; overflow: hidden;">
-                    <img src="<?php echo $gambar; ?>" style="width: 100%; height: 100%; object-fit: cover; transition: 0.5s;">
-                </div>
-
-                <div style="padding: 20px; flex: 1; display:flex; flex-direction:column;">
-                    <small style="color: #999; display:block; margin-bottom: 10px;">
-                        <i class="far fa-calendar-alt"></i> <?php echo date('d M Y', strtotime($d['tanggal_dibuat'])); ?>
-                    </small>
+        ?>
+            <div class="col-md-12" style="margin-bottom: 20px;">
+                <div style="background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column;">
                     
-                    <h3 style="margin: 0 0 10px 0; font-size: 18px; color: #333;">
-                        <a href="berita_detail.php?id=<?php echo $d['id_pengumuman']; ?>" style="text-decoration: none; color: #333;"><?php echo $d['judul']; ?></a>
-                    </h3>
-                    
-                    <p style="font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 20px; flex:1;">
-                        <?php echo $isi_singkat; ?>
-                    </p>
+                    <div style="padding: 25px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                            <div>
+                                <span style="background: #FFF3E0; color: #E65100; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">
+                                    <?php echo $d['tujuan']; ?>
+                                </span>
+                                <h3 style="margin: 10px 0 5px 0; color: #333; font-size: 20px;"><?php echo $d['judul']; ?></h3>
+                                <small style="color: #888;">
+                                    <i class="far fa-calendar-alt"></i> <?php echo date('d F Y', strtotime($d['tanggal_dibuat'])); ?>
+                                    &bull; <i class="far fa-clock"></i> <?php echo date('H:i', strtotime($d['tanggal_dibuat'])); ?> WIB
+                                </small>
+                            </div>
+                        </div>
 
-                    <a href="berita_detail.php?id=<?php echo $d['id_pengumuman']; ?>" style="text-decoration: none; color: #FF8C00; font-weight: bold; font-size: 14px;">
-                        Baca Selengkapnya <i class="fas fa-arrow-right"></i>
-                    </a>
+                        <p style="color: #555; line-height: 1.6; font-size: 15px;">
+                            <?php echo nl2br($d['isi']); ?>
+                        </p>
+
+                        <?php 
+                            // PERBAIKAN: Gunakan 'file_lampiran' bukan 'gambar'
+                            if(!empty($d['file_lampiran'])){ 
+                                $file = $d['file_lampiran'];
+                                $ext = pathinfo($file, PATHINFO_EXTENSION);
+                                
+                                // Cek apakah lampiran adalah GAMBAR
+                                if(in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif'])){
+                        ?>
+                                    <div style="margin-top: 20px;">
+                                        <img src="uploads/pengumuman/<?php echo $file; ?>" style="max-width: 100%; border-radius: 10px; border: 1px solid #eee;" alt="Lampiran Gambar">
+                                    </div>
+                        <?php 
+                                } else { 
+                                // Jika BUKAN gambar (PDF, Doc, dll) tampilkan tombol download
+                        ?>
+                                    <div style="margin-top: 20px;">
+                                        <a href="uploads/pengumuman/<?php echo $file; ?>" target="_blank" style="display: inline-flex; align-items: center; background: #f8f9fa; border: 1px solid #ddd; padding: 10px 20px; border-radius: 8px; text-decoration: none; color: #333; font-weight: 500;">
+                                            <i class="fas fa-file-download" style="margin-right: 10px; color: #FF8C00;"></i> 
+                                            Download Lampiran (<?php echo strtoupper($ext); ?>)
+                                        </a>
+                                    </div>
+                        <?php 
+                                }
+                            } 
+                        ?>
+
+                    </div>
                 </div>
             </div>
 
-            <?php } ?>
-        </div>
-
+        <?php 
+            }
+        } else {
+        ?>
+            <div class="col-12" style="text-align: center; padding: 50px;">
+                <img src="assets/img/empty.svg" style="width: 150px; opacity: 0.5; margin-bottom: 20px;">
+                <p style="color: #999; font-size: 16px;">Belum ada berita atau pengumuman terbaru.</p>
+            </div>
+        <?php } ?>
     </div>
+</div>
 
-    <footer style="text-align: center; padding: 30px; background: #fff; border-top: 1px solid #eee; color: #888;">
-        &copy; <?php echo date('Y'); ?> SMAIT As-Sakinah
-    </footer>
-
-</body>
-</html>
+<?php 
+// Include Footer sesuai role agar modal & script tetap jalan
+if(isset($_SESSION['role'])){
+    if($_SESSION['role'] == 'admin'){
+        include 'admin/footer.php';
+    } elseif($_SESSION['role'] == 'guru'){
+        include 'guru/footer.php';
+    } elseif($_SESSION['role'] == 'siswa'){
+        include 'siswa/footer.php';
+    }
+}
+?>

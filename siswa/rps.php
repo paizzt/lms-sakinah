@@ -1,6 +1,6 @@
 <?php include 'header.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #6a11cb, #2575fc); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(37, 117, 252, 0.2);">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(37, 117, 252, 0.2);">
     <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-book-reader"></i> RPS Pembelajaran</h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Daftar Rencana Pembelajaran Semester untuk kelas Anda.</p>
 </div>

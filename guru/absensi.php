@@ -1,6 +1,6 @@
 <?php include 'header.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #667eea, #764ba2); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(118, 75, 162, 0.3);">
     <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-user-check"></i> Absensi Siswa</h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Pilih Mata Pelajaran untuk mulai mencatat kehadiran.</p>
 </div>

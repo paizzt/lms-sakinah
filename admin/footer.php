@@ -58,42 +58,49 @@
     </div>
 
     <script>
-        // Fungsi Buka/Tutup Modal Utama
-        function toggleNewsModal() {
-            var modal = document.getElementById("newsModal");
-            modal.classList.toggle("show");
-        }
+        // 1. SAAT HALAMAN DIMUAT: Cek memori LocalStorage
+        document.addEventListener("DOMContentLoaded", function() {
+            var sidebar = document.querySelector('.sidebar');
+            var savedStatus = localStorage.getItem('sidebarStatus');
 
-        // Fungsi Buka/Tutup Detail Berita (Accordion)
-        function toggleNewsDetail(id) {
-            var detail = document.getElementById("detail-" + id);
+            // Jika sebelumnya sidebar terbuka ('active'), maka buka lagi sekarang
+            if (savedStatus === 'active') {
+                sidebar.classList.add('active');
+            }
+        });
+
+        // 2. FUNGSI KLIK TOMBOL: Buka/Tutup & Simpan ke Memori
+        function toggleSidebar() {
+            var sidebar = document.querySelector('.sidebar');
             
-            // Tutup detail lain biar rapi (opsional)
-            var allDetails = document.querySelectorAll('.news-detail');
-            allDetails.forEach(function(el) {
-                if (el !== detail) {
-                    el.style.display = 'none';
-                }
-            });
+            // Toggle class active
+            sidebar.classList.toggle('active');
 
-            // Toggle yang diklik
-            if (detail.style.display === "block") {
-                detail.style.display = "none";
+            // Cek kondisi sekarang dan simpan ke LocalStorage
+            if (sidebar.classList.contains('active')) {
+                localStorage.setItem('sidebarStatus', 'active'); // Simpan status 'terbuka'
             } else {
-                detail.style.display = "block";
+                localStorage.setItem('sidebarStatus', 'closed'); // Simpan status 'tertutup'
             }
         }
 
-        // Tutup modal jika klik di luar kotak (backdrop)
+        // 3. Dropdown Menu Profil (Opsional, jika ada di header)
+        // Menutup dropdown jika klik di luar area
         window.onclick = function(event) {
-            var modal = document.getElementById("newsModal");
-            if (event.target == modal) {
-                modal.classList.remove("show");
+            if (!event.target.matches('.btn-menu-action') && !event.target.matches('.btn-menu-action i')) {
+                var dropdowns = document.getElementsByClassName("action-dropdown");
+                for (var i = 0; i < dropdowns.length; i++) {
+                    if (dropdowns[i].classList.contains('active')) {
+                        dropdowns[i].classList.remove('active');
+                    }
+                }
             }
         }
+    
     </script>
 
 </div> 
 </div>
+
 </body>
 </html>

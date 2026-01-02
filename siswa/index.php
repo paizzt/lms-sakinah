@@ -1,7 +1,7 @@
 <?php include 'header.php'; ?>
 
 <div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F4A460); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
-    <h2 style="margin: 0; font-size: 28px;">Halo, <?php echo $_SESSION['nama_lengkap']; ?>! 👋</h2>
+    <h2 style="margin: 0; font-size: 28px;">Halo, <?php echo $_SESSION['nama_lengkap']; ?>! </h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Selamat datang di Ruang Belajar Digital. Cek jadwal dan tugasmu hari ini.</p>
 </div>
 

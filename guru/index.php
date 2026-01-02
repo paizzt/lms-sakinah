@@ -1,6 +1,6 @@
 <?php include 'header.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #11998e, #38ef7d); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(56, 239, 125, 0.2);">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(56, 239, 125, 0.2);">
     <h1 style="margin: 0; font-size: 28px;">Selamat Datang, <?php echo $_SESSION['nama_lengkap']; ?>!</h1>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Selamat beraktivitas di E-Learning SMAIT As-Sakinah.</p>
 </div>

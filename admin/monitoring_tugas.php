@@ -1,7 +1,7 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #ff512f, #dd2476); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
+<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #FF8C00); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px;">
     <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-clipboard-check"></i> Monitoring Tugas</h2>
     <p style="margin: 5px 0 0 0; opacity: 0.9;">Pantau tugas dan kuis yang diberikan guru.</p>
 </div>

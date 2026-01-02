@@ -51,7 +51,21 @@
                     }
                 }
                 ?>
-
+                <?php 
+                if(isset($_GET['pesan'])){
+                    if($_GET['pesan'] == "gagal"){;
+                        } else if($_GET['pesan'] == "belum_login"){
+                echo "<div style='margin-bottom: 20px; padding: 12px; background: #fff3e0; color: #ef6c00; border: 1px solid #ffe0b2; border-radius: 5px; font-size: 13px; text-align: center;'>
+                        Silakan login untuk mengakses sistem.
+                        </div>";
+            } else if($_GET['pesan'] == "logout"){
+                echo "<div style='margin-bottom: 20px; padding: 12px; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; border-radius: 5px; font-size: 13px; text-align: center;'>
+                        Anda telah berhasil logout.
+                        </div>";
+            }
+        }
+        ?>
+        <form action="cek_login.php" method="POST">
                 <form action="cek_login.php" method="POST">
                     
                     <div class="input-group">
@@ -65,7 +79,7 @@
                     </div>
 
                     <div class="extra-links">
-                        <a href="register.php">register here..</a>
+                        <a href="register.php">Register here</a>
                         <a href="#">Forgot Password?</a>
                     </div>
 
