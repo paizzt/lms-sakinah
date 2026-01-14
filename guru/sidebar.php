@@ -25,6 +25,11 @@
             </a>
         </li>
         <li>
+            <a href="absensi_detail.php">
+                <i class="fas fa-user-check"></i> <span>Absensi detail</span>
+            </a>
+        </li>
+        <li>
         <a href="rps.php">
         <i class="fas fa-tasks"></i> <span>Kelola RPS</span>
         </a>

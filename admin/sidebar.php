@@ -11,6 +11,7 @@
         <li><a href="users.php"><i class="fas fa-users-cog"></i> <span>Manajemen User</span></a></li>
         <li><a href="kelas.php"><i class="fas fa-chalkboard"></i> <span>Manajemen Kelas</span></a></li>
         <li><a href="mapel.php"><i class="fas fa-book"></i> <span>Mata Pelajaran</span></a></li>
+        <li><a href="materi.php"><i class="fas fa-book"></i> <span>Materi</span></a></li>
 
         <li style="margin-top: 15px; padding-left: 20px; font-size: 11px; color: #aaa; font-weight: bold; text-transform: uppercase;">Monitoring</li>
         <li><a href="monitoring_materi.php"><i class="fas fa-desktop"></i> <span>Materi Guru</span></a></li>

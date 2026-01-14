@@ -37,7 +37,9 @@ $nama_kelas = $d_siswa['nama_kelas'] ? $d_siswa['nama_kelas'] : "Belum ada kelas
                 <i class="fas fa-book"></i> <span>Mata Pelajaran</span>
             </a>
         </li>
-        
+        <li class="<?php if($page == 'absensi.php') echo 'active'; ?>">
+            <a href="absensi.php"><i class="fas fa-user-check"></i> <span>Rekap Absensi</span></a>
+        </li>
         <li>
             <a href="rps.php">
                 <i class="fas fa-book-reader"></i> <span>RPS Pembelajaran</span>
