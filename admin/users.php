@@ -14,22 +14,25 @@ $jml_all   = mysqli_num_rows($q_all);
 $jml_admin = mysqli_num_rows($q_admin);
 $jml_guru  = mysqli_num_rows($q_guru);
 $jml_siswa = mysqli_num_rows($q_siswa);
+
+// AMBIL DATA KELAS UNTUK DROPDOWN (Disimpan dalam array agar bisa dipakai di 2 modal)
+$arr_kelas = [];
+$q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
+while($k = mysqli_fetch_assoc($q_kelas)){
+    $arr_kelas[] = $k;
+}
 ?>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-    <style>
-        body, h1, h2, h3, h4, h5, h6, p, a, span, div, table, th, td, input, select, textarea, button {
-            font-family: 'Poppins', sans-serif;
-        }
-        body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-    </style>
 <style>
+    body, h1, h2, h3, h4, h5, h6, p, a, span, div, table, th, td, input, select, textarea, button {
+        font-family: 'Poppins', sans-serif;
+    }
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
     /* GRID STATISTIK */
     .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
     .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #FF8C00; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
@@ -42,15 +45,15 @@ $jml_siswa = mysqli_num_rows($q_siswa);
 
     /* MODAL STYLES */
     .modal-overlay { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; padding: 20px; }
-    .modal-box { background-color: #fff; width: 100%; max-width: 600px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; }
+    .modal-box { background-color: #fff; width: 100%; max-width: 600px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; }
     @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     
-    .modal-header { background: linear-gradient(135deg, #FF8C00, #F39C12); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header { background: linear-gradient(135deg, #FF8C00, #F39C12); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
     .modal-header h3 { margin: 0; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     .close-btn { cursor: pointer; font-size: 24px; transition: 0.3s; opacity: 0.8; }
     .close-btn:hover { opacity: 1; transform: rotate(90deg); }
 
-    .modal-body { padding: 30px; background: #fdfdfd; max-height: 70vh; overflow-y: auto; }
+    .modal-body { padding: 30px; background: #fdfdfd; overflow-y: auto; }
     
     .form-group { margin-bottom: 15px; }
     .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #555; font-size: 13px; }
@@ -66,6 +69,10 @@ $jml_siswa = mysqli_num_rows($q_siswa);
     .file-upload-box i { font-size: 30px; color: #FF8C00; margin-bottom: 10px; display: block; }
     .file-upload-box span { font-size: 13px; color: #777; font-weight: 600; }
     input[type="file"] { display: none; }
+    
+    /* Box Kelas Animation */
+    .box-kelas { display: none; animation: slideDown 0.3s ease; border: 1px solid #ffe0b2; background: #fff8e1; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="content-body" style="margin-top: -20px;">
@@ -157,7 +164,14 @@ $jml_siswa = mysqli_num_rows($q_siswa);
                             <?php 
                             if($d['role'] == "admin") echo "<span style='background: #fdedec; color: #c0392b; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold;'>ADMIN</span>";
                             else if($d['role'] == "guru") echo "<span style='background: #eaf2f8; color: #2980b9; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold;'>GURU</span>";
-                            else echo "<span style='background: #eafaf1; color: #27ae60; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold;'>SISWA</span>";
+                            else {
+                                echo "<span style='background: #eafaf1; color: #27ae60; padding: 4px 10px; border-radius: 15px; font-size: 11px; font-weight: bold;'>SISWA</span>";
+                                // Tampilkan info kelas jika ada (opsional)
+                                if(!empty($d['kelas_id'])){
+                                    $k = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT nama_kelas FROM kelas WHERE id_kelas='".$d['kelas_id']."'"));
+                                    echo "<br><small style='color:#777;'>".$k['nama_kelas']."</small>";
+                                }
+                            }
                             ?>
                         </td>
                         <td style="padding: 15px; text-align: center;">
@@ -166,7 +180,8 @@ $jml_siswa = mysqli_num_rows($q_siswa);
                                 '<?php echo addslashes($d['nama_lengkap']); ?>',
                                 '<?php echo $d['username']; ?>',
                                 '<?php echo $d['email']; ?>',
-                                '<?php echo $d['role']; ?>'
+                                '<?php echo $d['role']; ?>',
+                                '<?php echo $d['kelas_id']; ?>'
                             )" class="btn-action edit" title="Edit" style="background: #FFF3E0; color: #E65100; padding: 8px 12px; border: none; border-radius: 6px; margin-right: 5px; cursor: pointer;">
                                 <i class="fas fa-user-edit"></i>
                             </button>
@@ -197,14 +212,26 @@ $jml_siswa = mysqli_num_rows($q_siswa);
                     <div class="form-group"><label>Username</label><input type="text" name="username" class="form-control-modal" required autocomplete="off"></div>
                     <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control-modal" required></div>
                 </div>
+                
                 <div class="form-group"><label>Level Akses</label>
-                    <select name="role" class="form-control-modal" required>
+                    <select name="role" class="form-control-modal" required onchange="toggleKelas(this.value, 'boxKelasTambah')">
                         <option value="">-- Pilih --</option>
                         <option value="admin">Administrator</option>
                         <option value="guru">Guru</option>
                         <option value="siswa">Siswa</option>
                     </select>
                 </div>
+
+                <div class="form-group box-kelas" id="boxKelasTambah">
+                    <label style="color:#E65100;">Pilih Kelas (Wajib untuk Siswa)</label>
+                    <select name="kelas_id" class="form-control-modal" style="border-color:#FF8C00;">
+                        <option value="0">-- Pilih Kelas --</option>
+                        <?php foreach($arr_kelas as $k){ ?>
+                            <option value="<?php echo $k['id_kelas']; ?>"><?php echo $k['nama_kelas']; ?></option>
+                        <?php } ?>
+                    </select>
+                </div>
+
                 <div class="form-group"><label>Foto Profil</label><input type="file" name="foto" id="fileInput" accept="image/*" onchange="updateFileName()"><label for="fileInput" class="file-upload-box"><i class="fas fa-cloud-upload-alt"></i><span id="fileName">Klik untuk pilih foto...</span></label></div>
                 <button type="submit" class="btn-submit-modal"><i class="fas fa-save"></i> SIMPAN USER</button>
             </form>
@@ -231,10 +258,20 @@ $jml_siswa = mysqli_num_rows($q_siswa);
                 </div>
 
                 <div class="form-group"><label>Level Akses</label>
-                    <select name="role" id="edit_role" class="form-control-modal" required>
+                    <select name="role" id="edit_role" class="form-control-modal" required onchange="toggleKelas(this.value, 'boxKelasEdit')">
                         <option value="admin">Administrator</option>
                         <option value="guru">Guru</option>
                         <option value="siswa">Siswa</option>
+                    </select>
+                </div>
+
+                <div class="form-group box-kelas" id="boxKelasEdit">
+                    <label style="color:#E65100;">Pilih Kelas</label>
+                    <select name="kelas_id" id="edit_kelas" class="form-control-modal" style="border-color:#FF8C00;">
+                        <option value="0">-- Pilih Kelas --</option>
+                        <?php foreach($arr_kelas as $k){ ?>
+                            <option value="<?php echo $k['id_kelas']; ?>"><?php echo $k['nama_kelas']; ?></option>
+                        <?php } ?>
                     </select>
                 </div>
 
@@ -253,16 +290,34 @@ $jml_siswa = mysqli_num_rows($q_siswa);
     function updateFileName() { document.getElementById('fileName').innerText = document.getElementById('fileInput').files[0].name; }
 
     // --- MODAL EDIT (LOGIKA BARU) ---
-    function bukaModalEdit(id, nama, username, email, role) {
+    function bukaModalEdit(id, nama, username, email, role, kelas_id) {
         document.getElementById('edit_id').value = id;
         document.getElementById('edit_nama').value = nama;
         document.getElementById('edit_username').value = username;
         document.getElementById('edit_email').value = email;
         document.getElementById('edit_role').value = role;
+        
+        // Atur Kelas Dropdown
+        var selectKelas = document.getElementById('edit_kelas');
+        selectKelas.value = kelas_id ? kelas_id : 0; // Set value kelas
+
+        // Tampilkan/Sembunyikan box kelas
+        toggleKelas(role, 'boxKelasEdit');
+
         document.getElementById('modalEditUser').style.display = "flex";
     }
     function tutupModalEdit() { document.getElementById('modalEditUser').style.display = "none"; }
     function updateFileNameEdit() { document.getElementById('fileNameEdit').innerText = document.getElementById('fileInputEdit').files[0].name; }
+
+    // --- FUNGSI TOGGLE KELAS ---
+    function toggleKelas(role, elementId) {
+        var box = document.getElementById(elementId);
+        if(role === 'siswa') {
+            box.style.display = 'block';
+        } else {
+            box.style.display = 'none';
+        }
+    }
 
     window.onclick = function(event) {
         if (event.target == document.getElementById('modalUser')) tutupModal();
