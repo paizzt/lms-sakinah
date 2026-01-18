@@ -1,26 +1,46 @@
 <?php 
 session_start();
 include '../config/koneksi.php';
+
 if($_SESSION['role'] != "guru"){ header("location:../index.php"); exit(); }
 
-$mapel_id = $_POST['mapel_id'];
-$deskripsi = $_POST['deskripsi'];
-$tanggal = date('Y-m-d H:i:s');
+$mapel      = $_POST['mapel'];
+$status     = $_POST['status'];
+$keterangan = mysqli_real_escape_string($koneksi, $_POST['keterangan']);
+$tanggal    = date('Y-m-d H:i:s');
 
-// Upload File
+// UPLOAD FILE (Folder sama dengan Admin: ../uploads/rps/)
 $rand = rand();
+$allowed = array('pdf','doc','docx');
 $filename = $_FILES['file_rps']['name'];
 
 if($filename != ""){
     $ext = pathinfo($filename, PATHINFO_EXTENSION);
-    $file_baru = $rand.'_'.$filename;
-    move_uploaded_file($_FILES['file_rps']['tmp_name'], '../uploads/rps/'.$file_baru);
-    
-    // Simpan ke DB
-    mysqli_query($koneksi, "INSERT INTO rps (mapel_id, deskripsi, file_rps, tanggal_upload) VALUES ('$mapel_id', '$deskripsi', '$file_baru', '$tanggal')");
-    
-    echo "<script>alert('RPS Berhasil diupload!'); window.location='rps.php';</script>";
+    if(in_array($ext, $allowed)){
+        $nama_file = $rand.'_'.$filename;
+        // Pastikan folder ada
+        if(!is_dir("../uploads/rps")) mkdir("../uploads/rps");
+        
+        move_uploaded_file($_FILES['file_rps']['tmp_name'], '../uploads/rps/'.$nama_file);
+        
+        $query = "INSERT INTO rps (mapel_id, file_rps, status, keterangan, tanggal_upload) 
+                  VALUES ('$mapel', '$nama_file', '$status', '$keterangan', '$tanggal')";
+                  
+        if(mysqli_query($koneksi, $query)){
+            $_SESSION['notif_status'] = 'sukses';
+            $_SESSION['notif_pesan']  = 'RPS berhasil diupload!';
+        } else {
+            $_SESSION['notif_status'] = 'error';
+            $_SESSION['notif_pesan']  = 'Gagal simpan database!';
+        }
+    } else {
+        $_SESSION['notif_status'] = 'gagal';
+        $_SESSION['notif_pesan']  = 'Format file harus PDF atau DOC/DOCX!';
+    }
 } else {
-    header("location:rps.php");
+    $_SESSION['notif_status'] = 'gagal';
+    $_SESSION['notif_pesan']  = 'File wajib dipilih!';
 }
+
+header("location:rps.php");
 ?>

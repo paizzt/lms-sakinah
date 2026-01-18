@@ -1,15 +1,28 @@
 <?php 
+session_start();
 include '../config/koneksi.php';
+
+if($_SESSION['role'] != "guru"){ header("location:../index.php"); exit(); }
+
 $id = $_GET['id'];
 
-// Ambil info file dulu untuk dihapus dari folder
-$q = mysqli_query($koneksi, "SELECT file_materi FROM materi WHERE id_materi='$id'");
-$d = mysqli_fetch_array($q);
+$data = mysqli_fetch_assoc(mysqli_query($koneksi, "SELECT file_url, tipe FROM materi WHERE id_materi='$id'"));
 
-if($d['file_materi'] != ""){
-    unlink("../uploads/materi/".$d['file_materi']);
+if($data['tipe'] == 'file'){
+    if(file_exists("../uploads/materi/".$data['file_url'])){
+        unlink("../uploads/materi/".$data['file_url']);
+    }
 }
 
-mysqli_query($koneksi, "DELETE FROM materi WHERE id_materi='$id'");
+$hapus = mysqli_query($koneksi, "DELETE FROM materi WHERE id_materi='$id'");
+
+if($hapus){
+    $_SESSION['notif_status'] = 'sukses';
+    $_SESSION['notif_pesan']  = 'Materi berhasil dihapus!';
+} else {
+    $_SESSION['notif_status'] = 'error';
+    $_SESSION['notif_pesan']  = 'Gagal menghapus data!';
+}
+
 header("location:materi.php");
 ?>

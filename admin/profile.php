@@ -1,121 +1,208 @@
-<?php include 'header.php'; ?>
-<?php include 'sidebar.php'; ?>
+<?php 
+include 'header.php'; 
+include 'sidebar.php'; 
 
-<?php
+// Ambil ID User
 $id_user = $_SESSION['id_user'];
-$query = "SELECT * FROM users WHERE id_user='$id_user'";
-$d = mysqli_fetch_array(mysqli_query($koneksi, $query));
+$query = mysqli_query($koneksi, "SELECT * FROM users WHERE id_user='$id_user'");
+$d = mysqli_fetch_assoc($query);
+
+// Foto Profil
+$foto = ($d['foto_profil'] && $d['foto_profil'] != 'default.jpg') ? "../uploads/profil/".$d['foto_profil'] : "../assets/img/avatar-default.svg";
 ?>
 
-<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F39C12); color: white; padding: 25px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
-    <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-user-shield"></i> Profil Administrator</h2>
-    <p style="margin: 5px 0 0 0; opacity: 0.9;">Kelola informasi akun dan keamanan sistem.</p>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div style="display: flex; gap: 30px; flex-wrap: wrap;">
+<style>
+    /* LAYOUT UTAMA */
+    .profile-container {
+        display: grid;
+        grid-template-columns: 350px 1fr;
+        gap: 30px;
+        margin-top: -20px;
+        align-items: start;
+    }
 
-    <div style="flex: 1; min-width: 300px;">
-        <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center;">
-            
-            <div style="position: relative; width: 150px; height: 150px; margin: 0 auto 20px auto;">
-                <?php 
-                    // Menggunakan logika file default jika kosong
-                    $foto = ($d['foto_profil'] && $d['foto_profil'] != 'default.jpg') ? "../uploads/profil/".$d['foto_profil'] : "../assets/img/avatar-default.svg";
-                ?>
-                <img src="<?php echo $foto; ?>" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 5px solid #fff3e0;">
-                
-                <label for="uploadFoto" style="position: absolute; bottom: 0; right: 10px; background: #FF8C00; color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: 0.3s;">
-                    <i class="fas fa-camera"></i>
-                </label>
-            </div>
+    .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
 
-            <h3 style="margin: 0; color: #333;"><?php echo $d['nama_lengkap']; ?></h3>
-            <span style="display: block; color: #888; font-size: 14px; margin-top: 5px;">Super Administrator</span>
-            
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-            
-            <div style="text-align: left; font-size: 14px; color: #555;">
-                <p><i class="fas fa-envelope" style="width: 25px; color: #FF8C00;"></i> <?php echo $d['email']; ?></p>
-                <p><i class="fas fa-user" style="width: 25px; color: #FF8C00;"></i> <?php echo $d['username']; ?></p>
-                <p><i class="fas fa-clock" style="width: 25px; color: #FF8C00;"></i> Login Terakhir: Sekarang</p>
-            </div>
+    .card-box {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
 
-            <form action="profile_aksi.php" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="act" value="update_foto">
-                <input type="file" name="foto_profil" id="uploadFoto" style="display: none;" onchange="this.form.submit()">
-            </form>
+    /* CARD KIRI (FOTO) */
+    .profile-header-bg { height: 120px; background: linear-gradient(135deg, #FF8C00, #F39C12); }
+    .profile-img-wrap { margin-top: -60px; position: relative; display: inline-block; left: 50%; transform: translateX(-50%); }
+    .profile-img { width: 120px; height: 120px; border-radius: 50%; border: 5px solid white; object-fit: cover; box-shadow: 0 5px 15px rgba(0,0,0,0.1); background: #fff; }
+    .profile-info { padding: 20px 25px 30px 25px; text-align: center; }
+    .profile-name { font-size: 20px; font-weight: 700; color: #333; margin: 10px 0 5px 0; }
+    .profile-role { display: inline-block; background: #FFF3E0; color: #E65100; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; letter-spacing: 1px; }
+    .profile-meta { margin-top: 25px; border-top: 1px solid #eee; padding-top: 20px; text-align: left; }
+    .meta-item { margin-bottom: 15px; font-size: 14px; color: #666; display: flex; align-items: center; gap: 15px; }
+    .meta-item i { color: #FF8C00; width: 20px; text-align: center; }
 
-        </div>
-    </div>
+    /* CARD KANAN (EDIT) */
+    .edit-card-body { padding: 35px; } /* Padding diperbesar agar lega */
+    
+    .card-header-title {
+        font-size: 16px; font-weight: 700; color: #444;
+        border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 30px;
+        display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    }
 
-    <div style="flex: 2; min-width: 300px;">
+    /* FORM STYLING (JARAK DIPERLEBAR) */
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 35px; /* Jarak Horizontal antar kolom input */
+    }
+    
+    .form-group {
+        margin-bottom: 25px; /* Jarak Vertikal antar baris */
+    }
+
+    .form-label {
+        display: block; font-weight: 600; color: #555;
+        margin-bottom: 12px; /* Jarak Label ke Input */
+        font-size: 13px;
+    }
+
+    .form-control-custom {
+        width: 100%; padding: 12px 15px;
+        border: 1px solid #e0e0e0; border-radius: 10px;
+        font-size: 14px; transition: 0.3s; background: #fafafa; color: #333;
+        box-sizing: border-box; /* Pastikan padding tidak merusak lebar */
+    }
+    .form-control-custom:focus {
+        border-color: #FF8C00; background: #fff; outline: none;
+        box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.1);
+    }
+
+    .upload-area { border: 2px dashed #ddd; padding: 15px; text-align: center; border-radius: 10px; cursor: pointer; transition: 0.3s; display: block; }
+    .upload-area:hover { border-color: #FF8C00; background: #FFF3E0; }
+
+    .btn-save-profile {
+        background: linear-gradient(to right, #FF8C00, #F39C12); color: white; border: none;
+        padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; float: right;
+    }
+    .btn-save-profile:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255, 140, 0, 0.3); }
+
+    @media (max-width: 900px) {
+        .profile-container { grid-template-columns: 1fr; }
+        .form-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+</style>
+
+<div class="content-body">
+
+    <form action="profil_update.php" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="id_user" value="<?php echo $d['id_user']; ?>">
+
+    <div class="profile-container">
         
-        <div style="background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden;">
-            <div style="padding: 15px 30px; background: #fff8e1; border-bottom: 1px solid #ffe0b2; font-weight: bold; color: #e67e22;">
-                <i class="fas fa-edit"></i> Edit Informasi Akun
+        <div class="card-box">
+            <div class="profile-header-bg"></div>
+            <div class="profile-img-wrap">
+                <img src="<?php echo $foto; ?>" class="profile-img" id="imgPreview">
             </div>
             
-            <div style="padding: 30px;">
-                <form action="profile_aksi.php" method="POST">
-                    <input type="hidden" name="act" value="update_bio">
-                    
-                    <div class="form-group">
-                        <label>Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control-modern" value="<?php echo $d['nama_lengkap']; ?>" required>
-                    </div>
-
-                    <div style="display: flex; gap: 20px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Username</label>
-                            <input type="text" name="username" class="form-control-modern" value="<?php echo $d['username']; ?>" required>
-                        </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label>Email</label>
-                            <input type="email" name="email" class="form-control-modern" value="<?php echo $d['email']; ?>" required>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-submit" style="background: linear-gradient(to right, #FF8C00, #F39C12); border:none; color:white; padding:12px 20px; border-radius:8px; cursor:pointer; width:100%;">
-                        <i class="fas fa-save"></i> Simpan Perubahan
-                    </button>
-                </form>
+            <div class="profile-info">
+                <div class="profile-name"><?php echo $d['nama_lengkap']; ?></div>
+                <div class="profile-role"><?php echo strtoupper($d['role']); ?></div>
+                <div class="profile-meta">
+                    <div class="meta-item"><i class="fas fa-id-card"></i> ID: <?php echo $d['username']; ?></div>
+                    <div class="meta-item"><i class="fas fa-envelope"></i> <?php echo $d['email']; ?></div>
+                </div>
+                <div style="margin-top: 20px; text-align: left;">
+                    <label class="form-label" style="font-size: 12px;">Update Foto Profil</label>
+                    <input type="file" name="foto" id="fileInput" style="display:none;" accept="image/*" onchange="previewImage()">
+                    <label for="fileInput" class="upload-area">
+                        <i class="fas fa-camera" style="color: #FF8C00;"></i> <span id="fileName" style="font-size:12px; color:#777;">Pilih Foto...</span>
+                    </label>
+                </div>
             </div>
         </div>
 
-        <br>
+        <div class="right-column">
+            
+            <div class="card-box">
+                <div class="edit-card-body">
+                    <div class="card-header-title"><i class="fas fa-user-edit" style="color: #FF8C00;"></i> Informasi Akun</div>
 
-        <div style="background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden;">
-            <div style="padding: 15px 30px; background: #f9f9f9; border-bottom: 1px solid #eee; font-weight: bold; color: #444;">
-                <i class="fas fa-lock"></i> Ganti Password
-            </div>
-            <div style="padding: 30px;">
-                <form action="profile_aksi.php" method="POST">
-                    <input type="hidden" name="act" value="ganti_pass">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nama Lengkap</label>
+                            <input type="text" name="nama" class="form-control-custom" value="<?php echo $d['nama_lengkap']; ?>" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email Aktif</label>
+                            <input type="email" name="email" class="form-control-custom" value="<?php echo $d['email']; ?>" required>
+                        </div>
+                    </div>
 
                     <div class="form-group">
-                        <label>Password Lama</label>
-                        <input type="password" name="pass_lama" class="form-control-modern" required>
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control-custom" value="<?php echo $d['username']; ?>" required>
                     </div>
-
-                    <div style="display: flex; gap: 20px;">
-                        <div class="form-group" style="flex: 1;">
-                            <label>Password Baru</label>
-                            <input type="password" name="pass_baru" class="form-control-modern" required>
-                        </div>
-                        <div class="form-group" style="flex: 1;">
-                            <label>Konfirmasi Password Baru</label>
-                            <input type="password" name="konf_baru" class="form-control-modern" required>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-submit" style="background: #333; border:none; color:white; padding:12px 20px; border-radius:8px; cursor:pointer; width:100%;">
-                        <i class="fas fa-key"></i> Update Password
-                    </button>
-                </form>
+                </div>
             </div>
-        </div>
 
+            <div class="card-box">
+                <div class="edit-card-body">
+                    <div class="card-header-title"><i class="fas fa-lock" style="color: #c0392b;"></i> Ubah Password</div>
+
+                    <div class="form-group">
+                        <label class="form-label">Password Lama (Wajib jika ingin mengganti)</label>
+                        <input type="password" name="pass_lama" class="form-control-custom" placeholder="Masukkan password saat ini...">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Password Baru</label>
+                            <input type="password" name="pass_baru" class="form-control-custom" placeholder="Password baru...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Konfirmasi Password Baru</label>
+                            <input type="password" name="pass_konf" class="form-control-custom" placeholder="Ulangi password baru...">
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 20px;">
+                        <button type="submit" class="btn-save-profile"><i class="fas fa-check-circle"></i> SIMPAN SEMUA PERUBAHAN</button>
+                    </div>
+                </div>
+            </div>
+
+        </div> 
     </div>
+    </form>
 </div>
+
+<script>
+    function previewImage() {
+        const file = document.getElementById('fileInput').files[0];
+        if (file) {
+            document.getElementById('fileName').innerText = file.name;
+            const reader = new FileReader();
+            reader.onload = function(e) { document.getElementById('imgPreview').src = e.target.result; }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    <?php if(isset($_SESSION['notif_status'])) { ?>
+        Swal.fire({
+            title: '<?php echo ($_SESSION['notif_status'] == 'sukses') ? "BERHASIL!" : "GAGAL!"; ?>',
+            text: '<?php echo $_SESSION['notif_pesan']; ?>',
+            icon: '<?php echo ($_SESSION['notif_status'] == 'sukses') ? "success" : "error"; ?>',
+            confirmButtonColor: '#FF8C00'
+        });
+    <?php unset($_SESSION['notif_status']); unset($_SESSION['notif_pesan']); } ?>
+</script>
 
 <?php include 'footer.php'; ?>

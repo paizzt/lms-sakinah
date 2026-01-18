@@ -4,48 +4,41 @@ include '../config/koneksi.php';
 
 if($_SESSION['role'] != "guru"){ header("location:../index.php"); exit(); }
 
-$guru_id = $_SESSION['id_user'];
-$kelas_id = $_POST['kelas_id'];
-// TANGKAP MAPEL ID DARI POST
-$mapel_id = $_POST['mapel_id']; 
-$tanggal = $_POST['tanggal'];
+$mapel_id = $_POST['mapel_id'];
+$tanggal  = $_POST['tanggal'];
+$status   = $_POST['status']; 
+$ket      = $_POST['ket'];    
 
-$siswa_ids = $_POST['siswa_id']; 
-$statuses = $_POST['status']; 
-$keterangans = $_POST['keterangan']; 
+$sukses = 0;
 
-// Validasi sederhana agar tidak error database
-if(empty($mapel_id) || empty($kelas_id)){
-    echo "<script>alert('Error: Data Mapel atau Kelas hilang!'); window.history.back();</script>";
-    exit();
-}
-
-foreach($siswa_ids as $id_siswa){
-    
-    $status = $statuses[$id_siswa];
-    $keterangan = $keterangans[$id_siswa];
-    
-    // Cek apakah data sudah ada (Filter berdasarkan Tanggal DAN MAPEL)
-    // Siswa bisa hadir di mapel A tapi bolos di mapel B pada hari yang sama
-    $cek = mysqli_query($koneksi, "SELECT id_absensi FROM absensi WHERE siswa_id='$id_siswa' AND tanggal='$tanggal' AND mapel_id='$mapel_id'");
-    
-    if(mysqli_num_rows($cek) > 0){
-        // UPDATE
-        $update = "UPDATE absensi SET status='$status', keterangan='$keterangan', guru_id='$guru_id' 
-                   WHERE siswa_id='$id_siswa' AND tanggal='$tanggal' AND mapel_id='$mapel_id'";
-        mysqli_query($koneksi, $update);
-    } else {
-        // INSERT (Wajib menyertakan mapel_id)
-        $insert = "INSERT INTO absensi (mapel_id, kelas_id, siswa_id, guru_id, tanggal, status, keterangan) 
-                   VALUES ('$mapel_id', '$kelas_id', '$id_siswa', '$guru_id', '$tanggal', '$status', '$keterangan')";
+if(!empty($status)){
+    foreach($status as $id_siswa => $nilai_status){
         
-        if(!mysqli_query($koneksi, $insert)){
-            // Debugging jika masih error
-            echo "Gagal Insert: " . mysqli_error($koneksi);
-            exit();
+        $keterangan_siswa = mysqli_real_escape_string($koneksi, $ket[$id_siswa]);
+
+        // Cek apakah data sudah ada?
+        $cek = mysqli_query($koneksi, "SELECT id_absensi FROM absensi WHERE mapel_id='$mapel_id' AND siswa_id='$id_siswa' AND tanggal='$tanggal'");
+        
+        if(mysqli_num_rows($cek) > 0){
+            // UPDATE
+            $update = mysqli_query($koneksi, "UPDATE absensi SET status='$nilai_status', keterangan='$keterangan_siswa' WHERE mapel_id='$mapel_id' AND siswa_id='$id_siswa' AND tanggal='$tanggal'");
+            if($update) $sukses++;
+        } else {
+            // INSERT
+            $insert = mysqli_query($koneksi, "INSERT INTO absensi (mapel_id, siswa_id, tanggal, status, keterangan) VALUES ('$mapel_id', '$id_siswa', '$tanggal', '$nilai_status', '$keterangan_siswa')");
+            if($insert) $sukses++;
         }
     }
 }
 
-echo "<script>alert('Data absensi berhasil disimpan!'); window.location='absensi.php';</script>";
+if($sukses > 0){
+    $_SESSION['notif_status'] = 'sukses';
+    $_SESSION['notif_pesan']  = 'Absensi berhasil disimpan!';
+} else {
+    $_SESSION['notif_status'] = 'error';
+    $_SESSION['notif_pesan']  = 'Gagal menyimpan!';
+}
+
+// Redirect kembali ke halaman INPUT
+header("location:absensi_input.php?mapel=$mapel_id&tgl=$tanggal");
 ?>

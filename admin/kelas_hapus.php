@@ -1,12 +1,22 @@
 <?php 
+session_start();
 include '../config/koneksi.php';
+
+if($_SESSION['role'] != "admin"){ header("location:../index.php"); exit(); }
+
 $id = $_GET['id'];
 
-// Set NULL kelas_id pada siswa yang ada di kelas ini agar tidak error
-mysqli_query($koneksi, "UPDATE siswa_detail SET kelas_id=NULL WHERE kelas_id='$id'");
+// Hapus Kelas
+$hapus = mysqli_query($koneksi, "DELETE FROM kelas WHERE id_kelas='$id'");
 
-// Hapus kelas
-mysqli_query($koneksi, "DELETE FROM kelas WHERE id_kelas='$id'");
+if($hapus){
+    $_SESSION['notif_status'] = 'sukses';
+    $_SESSION['notif_pesan']  = 'Kelas berhasil dihapus!';
+} else {
+    // Biasanya gagal jika ada relasi Foreign Key (misal ada siswa di kelas tersebut)
+    $_SESSION['notif_status'] = 'error';
+    $_SESSION['notif_pesan']  = 'Gagal menghapus! Pastikan kelas kosong dari siswa/mapel.';
+}
 
 header("location:kelas.php");
 ?>

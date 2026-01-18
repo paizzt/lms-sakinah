@@ -1,18 +1,25 @@
-</div> </div> </div> <div id="newsModal" class="modal-backdrop">
+</div> 
+        </div> 
+    </div> 
+
+    <div id="newsModal" class="modal-backdrop">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-bullhorn" style="color: #FF8C00;"></i> Pengumuman Sekolah</h3>
+                <h3><i class="fas fa-bullhorn" style="color: #FF8C00;"></i> Papan Pengumuman</h3>
                 <button class="btn-close-modal" onclick="toggleNewsModal()">&times;</button>
             </div>
             <div class="modal-body">
                 
                 <?php 
                 if(isset($koneksi)){
-                    // PERBAIKAN 1: Tambahkan Filter WHERE tujuan IN ('semua', 'siswa')
-                    $q_news = mysqli_query($koneksi, "SELECT * FROM pengumuman WHERE tujuan IN ('semua', 'siswa') ORDER BY id_pengumuman DESC LIMIT 5");
+                    // FILTER: Hanya tampilkan pengumuman untuk 'semua' atau 'siswa'
+                    $q_news = mysqli_query($koneksi, "SELECT * FROM pengumuman WHERE tujuan IN ('semua', 'siswa') ORDER BY tanggal DESC LIMIT 5");
                     
                     if(mysqli_num_rows($q_news) > 0){
                         while($news = mysqli_fetch_array($q_news)){
+                            $tujuan = $news['tujuan'];
+                            // Warna badge: Ungu (Semua), Hijau (Siswa)
+                            $warna_badge = ($tujuan == 'Semua') ? '#7e57c2' : '#27ae60';
                 ?>
                         <div class="news-item">
                             <div class="news-title" onclick="toggleDetail('news_<?php echo $news['id_pengumuman']; ?>')">
@@ -20,9 +27,10 @@
                                 <i class="fas fa-chevron-down" style="font-size: 12px; color: #ccc;"></i>
                             </div>
                             <small class="news-date">
-                                <i class="far fa-clock"></i> <?php echo date('d F Y', strtotime($news['tanggal_dibuat'])); ?> 
-                                <span class="badge-target target-<?php echo $news['tujuan']; ?>" style="margin-left:5px; font-size:10px; padding:2px 6px;">
-                                    <?php echo ucfirst($news['tujuan']); ?>
+                                <i class="far fa-clock"></i> <?php echo date('d F Y', strtotime($news['tanggal'])); ?> 
+                                
+                                <span style="margin-left:5px; font-size:10px; padding:2px 8px; border-radius:10px; color:white; background: <?php echo $warna_badge; ?>;">
+                                    <?php echo strtoupper($news['tujuan']); ?>
                                 </span>
                             </small>
                             
@@ -32,7 +40,7 @@
                                 <?php if(!empty($news['file_lampiran'])){ ?>
                                     <div style="margin-top: 10px; padding: 10px; background: #eee; border-radius: 5px;">
                                         <i class="fas fa-paperclip"></i> 
-                                        <a href="../uploads/pengumuman/<?php echo $news['file_lampiran']; ?>" target="_blank">Lihat Lampiran</a>
+                                        <a href="../uploads/pengumuman/<?php echo $news['file_lampiran']; ?>" target="_blank" style="text-decoration:none; color:#E65100; font-weight:bold;">Lihat Lampiran</a>
                                     </div>
                                 <?php } ?>
                             </div>
@@ -40,7 +48,10 @@
                 <?php 
                         }
                     } else {
-                        echo "<p style='text-align:center; color:#999; padding:20px;'>Tidak ada pengumuman untuk siswa saat ini.</p>";
+                        echo "<div style='text-align:center; padding:30px; color:#999;'>
+                                <img src='../assets/img/completed.svg' style='width:60px; opacity:0.5; margin-bottom:10px;'>
+                                <p>Tidak ada pengumuman baru.</p>
+                              </div>";
                     }
                 }
                 ?>
@@ -55,34 +66,47 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var sidebar = document.querySelector('.sidebar');
-            var savedStatus = localStorage.getItem('sidebarStatus');
-            if (savedStatus === 'active') sidebar.classList.add('active');
-        });
-
+        // Toggle Sidebar
         function toggleSidebar() {
             var sidebar = document.querySelector('.sidebar');
+            var content = document.querySelector('.content-body');
+            
             sidebar.classList.toggle('active');
+            if(content) content.classList.toggle('active');
+
+            // Simpan status sidebar
             localStorage.setItem('sidebarStatus', sidebar.classList.contains('active') ? 'active' : 'closed');
         }
 
-        function toggleNewsModal() {
-            document.getElementById("newsModal").classList.toggle("show");
+        // Cek status sidebar saat load
+        document.addEventListener("DOMContentLoaded", function() {
+            var savedStatus = localStorage.getItem('sidebarStatus');
+            var sidebar = document.querySelector('.sidebar');
+            var content = document.querySelector('.content-body');
+            
+            if (savedStatus === 'active') {
+                sidebar.classList.add('active');
+                if(content) content.classList.add('active');
+            }
+        });
+
+        // Toggle Modal Berita
+        function toggleNewsModal() { 
+            document.getElementById("newsModal").classList.toggle("show"); 
         }
 
+        // Accordion Berita
         function toggleDetail(id) {
             var detail = document.getElementById(id);
-            detail.style.display = (detail.style.display === "block") ? "none" : "block";
+            if (detail.style.display === "block") {
+                detail.style.display = "none";
+            } else {
+                detail.style.display = "block";
+            }
         }
 
+        // Klik di luar modal untuk menutup
         window.onclick = function(event) {
-            if (!event.target.matches('.btn-menu-action') && !event.target.matches('.btn-menu-action i')) {
-                var dropdowns = document.getElementsByClassName("action-dropdown");
-                for (var i = 0; i < dropdowns.length; i++) {
-                    if (dropdowns[i].classList.contains('active')) dropdowns[i].classList.remove('active');
-                }
-            }
             var modal = document.getElementById("newsModal");
             if (event.target == modal) {
                 modal.classList.remove("show");

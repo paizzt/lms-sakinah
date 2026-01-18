@@ -1,6 +1,20 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body, h1, h2, h3, h4, h5, h6, p, a, span, div, table, th, td, input, select, textarea, button {
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
+<link rel="stylesheet" href="../assets/css/style.css">
 <?php
 // --- QUERY DATABASE ---
 
@@ -23,7 +37,7 @@ $jml_materi = mysqli_num_rows($q_materi);
 $q_mapel = mysqli_query($koneksi, "SELECT * FROM mapel");
 $jml_mapel = mysqli_num_rows($q_mapel);
 ?>
-
+<link rel="stylesheet" href="../assets/css/style.css">
 <style>
     .card-container {
         display: grid;
@@ -68,6 +82,7 @@ $jml_mapel = mysqli_num_rows($q_mapel);
             grid-template-columns: 1fr;
         }
     }
+    
 </style>
 
 <div class="content-body" style="margin-top: -20px;">

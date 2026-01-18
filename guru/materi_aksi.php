@@ -2,43 +2,54 @@
 session_start();
 include '../config/koneksi.php';
 
-// Validasi Guru
+// Pastikan Guru Login
 if($_SESSION['role'] != "guru"){ header("location:../index.php"); exit(); }
 
-$mapel_id = $_POST['mapel_id'];
-$judul = $_POST['judul'];
-$deskripsi = $_POST['deskripsi'];
-$link = $_POST['link_materi'];
-$tanggal = date('Y-m-d H:i:s');
+$judul     = mysqli_real_escape_string($koneksi, $_POST['judul']);
+$mapel     = $_POST['mapel'];
+$deskripsi = mysqli_real_escape_string($koneksi, $_POST['deskripsi']);
+$tipe      = $_POST['tipe'];
+$tanggal   = date('Y-m-d H:i:s');
+$file_url  = "";
 
-// Persiapan Upload File
-$rand = rand();
-$filename = $_FILES['file_materi']['name'];
-$file_baru = "";
-
-// Jika ada file yang diupload
-if($filename != ""){
-    $ext = pathinfo($filename, PATHINFO_EXTENSION);
-    $valid_ext = array('pdf','doc','docx','ppt','pptx','xls','xlsx');
-
-    // Cek ekstensi file
-    if(in_array(strtolower($ext), $valid_ext)){
-        $file_baru = $rand.'_'.$filename;
-        // Upload ke folder uploads/materi
-        move_uploaded_file($_FILES['file_materi']['tmp_name'], '../uploads/materi/'.$file_baru);
+// LOGIKA UPLOAD
+if($tipe == 'file'){
+    $rand = rand();
+    $allowed = array('pdf','doc','docx','ppt','pptx','xls','xlsx','png','jpg','jpeg');
+    $filename = $_FILES['file_materi']['name'];
+    
+    if($filename != ""){
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if(in_array($ext, $allowed)){
+            $file_url = $rand.'_'.$filename;
+            // Pastikan folder ini sama dengan Admin (Shared folder)
+            move_uploaded_file($_FILES['file_materi']['tmp_name'], '../uploads/materi/'.$file_url);
+        } else {
+            $_SESSION['notif_status'] = 'gagal';
+            $_SESSION['notif_pesan']  = 'Format file tidak diizinkan!';
+            header("location:materi.php");
+            exit();
+        }
     } else {
-        echo "<script>alert('Format file tidak didukung! Gunakan PDF, Word, atau PPT.'); window.location='materi_tambah.php';</script>";
+        $_SESSION['notif_status'] = 'gagal';
+        $_SESSION['notif_pesan']  = 'File wajib diupload!';
+        header("location:materi.php");
         exit();
     }
+} else {
+    $file_url = mysqli_real_escape_string($koneksi, $_POST['link_materi']);
 }
 
-// Query Insert
-$query = "INSERT INTO materi (mapel_id, judul_materi, deskripsi, file_materi, link_materi, tanggal_upload) 
-          VALUES ('$mapel_id', '$judul', '$deskripsi', '$file_baru', '$link', '$tanggal')";
+$query = "INSERT INTO materi (mapel_id, judul, deskripsi, tipe, file_url, tanggal_upload) 
+          VALUES ('$mapel', '$judul', '$deskripsi', '$tipe', '$file_url', '$tanggal')";
 
 if(mysqli_query($koneksi, $query)){
-    echo "<script>alert('Materi berhasil diupload!'); window.location='materi.php';</script>";
+    $_SESSION['notif_status'] = 'sukses';
+    $_SESSION['notif_pesan']  = 'Materi berhasil ditambahkan!';
 } else {
-    echo "<script>alert('Gagal mengupload materi.'); window.location='materi_tambah.php';</script>";
+    $_SESSION['notif_status'] = 'error';
+    $_SESSION['notif_pesan']  = 'Gagal menyimpan data!';
 }
+
+header("location:materi.php");
 ?>

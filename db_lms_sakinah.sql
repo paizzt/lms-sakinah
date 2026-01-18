@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 02 Jan 2026 pada 17.03
+-- Waktu pembuatan: 18 Jan 2026 pada 09.25
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -38,6 +38,28 @@ CREATE TABLE `absensi` (
   `keterangan` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data untuk tabel `absensi`
+--
+
+INSERT INTO `absensi` (`id_absensi`, `mapel_id`, `guru_id`, `kelas_id`, `siswa_id`, `tanggal`, `status`, `keterangan`) VALUES
+(1, 1, 2, 1, 4, '2026-01-14', '', ''),
+(2, 1, 2, 1, 5, '2026-01-14', '', ''),
+(3, 1, 2, 1, 8, '2026-01-14', '', ''),
+(4, 1, 2, 1, 4, '2026-01-15', 'sakit', ''),
+(5, 1, 2, 1, 5, '2026-01-15', 'sakit', ''),
+(6, 1, 2, 1, 8, '2026-01-15', 'sakit', ''),
+(7, 1, 2, 1, 4, '2026-01-17', 'izin', 'asdas'),
+(8, 1, 2, 1, 5, '2026-01-17', 'izin', ''),
+(9, 1, 2, 1, 8, '2026-01-17', 'izin', ''),
+(10, 4, 2, 2, 9, '2026-01-17', 'sakit', ''),
+(11, 4, 2, 2, 6, '2026-01-17', 'sakit', ''),
+(12, 1, 0, 0, 4, '2026-01-18', '', 'sasa'),
+(13, 1, 0, 0, 5, '2026-01-18', '', 'sa'),
+(14, 1, 0, 0, 9, '2026-01-18', '', 'sa'),
+(15, 1, 0, 0, 6, '2026-01-18', '', 'sa'),
+(16, 1, 0, 0, 8, '2026-01-18', '', 'as');
+
 -- --------------------------------------------------------
 
 --
@@ -47,17 +69,20 @@ CREATE TABLE `absensi` (
 CREATE TABLE `kelas` (
   `id_kelas` int(11) NOT NULL,
   `nama_kelas` varchar(20) NOT NULL,
-  `wali_kelas_id` int(11) DEFAULT NULL
+  `wali_kelas_id` int(11) DEFAULT NULL,
+  `tahun_ajaran` varchar(20) DEFAULT '-',
+  `semester` varchar(20) DEFAULT '-'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `kelas`
 --
 
-INSERT INTO `kelas` (`id_kelas`, `nama_kelas`, `wali_kelas_id`) VALUES
-(1, 'X IPA 1', 2),
-(2, 'X IPS 1', 3),
-(3, 'XI IPA 1', 7);
+INSERT INTO `kelas` (`id_kelas`, `nama_kelas`, `wali_kelas_id`, `tahun_ajaran`, `semester`) VALUES
+(1, 'X IPA 1', 2, '2022/2026', 'Genap'),
+(2, 'X IPS 1', 3, '2025/2026', 'Genap'),
+(3, 'XI IPA 1', 7, '2025/2026', 'Ganjil'),
+(7, 'X IPA 1', NULL, '2025/2026', 'Ganjil');
 
 -- --------------------------------------------------------
 
@@ -95,20 +120,19 @@ INSERT INTO `mapel` (`id_mapel`, `kode_mapel`, `nama_mapel`, `guru_id`, `kelas_i
 CREATE TABLE `materi` (
   `id_materi` int(11) NOT NULL,
   `mapel_id` int(11) NOT NULL,
-  `judul_materi` varchar(200) NOT NULL,
-  `deskripsi` text DEFAULT NULL,
-  `file_materi` varchar(255) DEFAULT NULL,
-  `link_materi` varchar(255) DEFAULT NULL,
-  `tanggal_upload` datetime DEFAULT current_timestamp()
+  `judul` varchar(255) NOT NULL,
+  `deskripsi` text NOT NULL,
+  `tipe` enum('file','link') NOT NULL,
+  `file_url` varchar(255) NOT NULL,
+  `tanggal_upload` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `materi`
 --
 
-INSERT INTO `materi` (`id_materi`, `mapel_id`, `judul_materi`, `deskripsi`, `file_materi`, `link_materi`, `tanggal_upload`) VALUES
-(1, 1, 'Bab 1: Eksponen dan Logaritma', 'Materi dasar tentang sifat-sifat eksponen.', 'materi_dummy.pdf', '', '2026-01-02 19:57:41'),
-(2, 2, 'Teks Laporan Hasil Observasi', 'Pengertian, struktur, dan kaidah kebahasaan teks LHO.', '', 'https://youtube.com/watch?v=video_lho', '2026-01-02 19:57:41');
+INSERT INTO `materi` (`id_materi`, `mapel_id`, `judul`, `deskripsi`, `tipe`, `file_url`, `tanggal_upload`) VALUES
+(3, 4, 's', 'sa', 'file', '1565635774_files-folder.png', '2026-01-17 20:21:49');
 
 -- --------------------------------------------------------
 
@@ -140,25 +164,18 @@ INSERT INTO `nilai` (`id_nilai`, `siswa_id`, `mapel_id`, `nilai_tugas`, `nilai_u
 -- --------------------------------------------------------
 
 --
--- Struktur dari tabel `pengumpulan`
+-- Struktur dari tabel `pengumpulan_tugas`
 --
 
-CREATE TABLE `pengumpulan` (
+CREATE TABLE `pengumpulan_tugas` (
   `id_pengumpulan` int(11) NOT NULL,
   `tugas_id` int(11) NOT NULL,
   `siswa_id` int(11) NOT NULL,
-  `file_siswa` varchar(255) DEFAULT NULL,
+  `file_tugas` varchar(255) NOT NULL,
+  `tgl_upload` datetime NOT NULL,
   `nilai` int(11) DEFAULT 0,
-  `komentar_guru` text DEFAULT NULL,
-  `tanggal_kumpul` datetime DEFAULT current_timestamp()
+  `catatan_guru` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `pengumpulan`
---
-
-INSERT INTO `pengumpulan` (`id_pengumpulan`, `tugas_id`, `siswa_id`, `file_siswa`, `nilai`, `komentar_guru`, `tanggal_kumpul`) VALUES
-(1, 1, 4, '835815747_files-folder.png', 99, 'nda bagus', '2026-01-02 17:01:09');
 
 -- --------------------------------------------------------
 
@@ -168,21 +185,19 @@ INSERT INTO `pengumpulan` (`id_pengumpulan`, `tugas_id`, `siswa_id`, `file_siswa
 
 CREATE TABLE `pengumuman` (
   `id_pengumuman` int(11) NOT NULL,
-  `judul` varchar(200) NOT NULL,
+  `judul` varchar(255) NOT NULL,
   `isi` text NOT NULL,
-  `tujuan` enum('semua','guru','siswa') NOT NULL,
+  `tujuan` enum('Semua','Guru','Siswa') NOT NULL DEFAULT 'Semua',
   `file_lampiran` varchar(255) DEFAULT NULL,
-  `tanggal_dibuat` datetime DEFAULT current_timestamp()
+  `tanggal` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `pengumuman`
 --
 
-INSERT INTO `pengumuman` (`id_pengumuman`, `judul`, `isi`, `tujuan`, `file_lampiran`, `tanggal_dibuat`) VALUES
-(1, 'Libur Awal Puasa', 'Kegiatan belajar mengajar diliburkan selama 3 hari awal puasa.', 'semua', NULL, '2026-03-01 08:00:00'),
-(2, 'Jadwal UTS Semester Ganjil', 'UTS akan dilaksanakan mulai tanggal 20 Oktober.', 'siswa', NULL, '2026-10-01 09:00:00'),
-(3, 'Rapat Dewan Guru', 'Mohon kehadiran Bapak/Ibu guru di ruang rapat.', 'guru', NULL, '2026-09-15 10:00:00');
+INSERT INTO `pengumuman` (`id_pengumuman`, `judul`, `isi`, `tujuan`, `file_lampiran`, `tanggal`) VALUES
+(3, 'sa', 'as', 'Semua', '', '2026-01-17 19:55:14');
 
 -- --------------------------------------------------------
 
@@ -193,17 +208,11 @@ INSERT INTO `pengumuman` (`id_pengumuman`, `judul`, `isi`, `tujuan`, `file_lampi
 CREATE TABLE `rps` (
   `id_rps` int(11) NOT NULL,
   `mapel_id` int(11) NOT NULL,
-  `deskripsi` text DEFAULT NULL,
   `file_rps` varchar(255) NOT NULL,
+  `status` enum('Aktif','Non-Aktif') NOT NULL DEFAULT 'Aktif',
+  `keterangan` text DEFAULT NULL,
   `tanggal_upload` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data untuk tabel `rps`
---
-
-INSERT INTO `rps` (`id_rps`, `mapel_id`, `deskripsi`, `file_rps`, `tanggal_upload`) VALUES
-(1, 1, 'Silabus Matematika Semester Ganjil 2025/2026', 'rps_dummy_mtk.pdf', '2025-07-01 08:00:00');
 
 -- --------------------------------------------------------
 
@@ -223,7 +232,8 @@ CREATE TABLE `semester` (
 --
 
 INSERT INTO `semester` (`id_semester`, `tahun_ajaran`, `semester`, `status`) VALUES
-(1, '2025/2026', 'Ganjil', 1);
+(1, '2025/2026', 'Ganjil', 1),
+(4, '2022/2026', 'Genap', 0);
 
 -- --------------------------------------------------------
 
@@ -261,19 +271,21 @@ INSERT INTO `siswa_detail` (`id_detail`, `user_id`, `kelas_id`, `nis`, `tempat_l
 CREATE TABLE `tugas` (
   `id_tugas` int(11) NOT NULL,
   `mapel_id` int(11) NOT NULL,
-  `judul_tugas` varchar(200) NOT NULL,
-  `deskripsi` text DEFAULT NULL,
-  `deadline` datetime NOT NULL,
-  `tipe` enum('tugas','kuis') DEFAULT 'tugas',
-  `file_tugas` varchar(255) DEFAULT NULL
+  `judul_tugas` varchar(255) NOT NULL,
+  `deskripsi` text NOT NULL,
+  `tgl_buat` datetime NOT NULL,
+  `tgl_kumpul` datetime NOT NULL,
+  `tipe` enum('file','link') NOT NULL DEFAULT 'file',
+  `file_url` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data untuk tabel `tugas`
 --
 
-INSERT INTO `tugas` (`id_tugas`, `mapel_id`, `judul_tugas`, `deskripsi`, `deadline`, `tipe`, `file_tugas`) VALUES
-(1, 1, 'Latihan Eksponen', 'Kerjakan Halaman 10.', '2026-12-31 23:59:00', 'tugas', NULL);
+INSERT INTO `tugas` (`id_tugas`, `mapel_id`, `judul_tugas`, `deskripsi`, `tgl_buat`, `tgl_kumpul`, `tipe`, `file_url`) VALUES
+(1, 3, '32', '23', '2026-01-17 18:09:19', '2026-02-02 12:00:00', 'file', ''),
+(3, 4, 'sa', '12', '2026-01-17 20:26:26', '2026-02-02 12:12:00', 'file', '96936645_files-folder.png');
 
 -- --------------------------------------------------------
 
@@ -288,6 +300,7 @@ CREATE TABLE `users` (
   `nama_lengkap` varchar(100) NOT NULL,
   `email` varchar(100) DEFAULT NULL,
   `role` enum('admin','guru','siswa') NOT NULL,
+  `kelas_id` int(11) DEFAULT NULL,
   `foto_profil` varchar(255) DEFAULT 'default.jpg',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -296,17 +309,17 @@ CREATE TABLE `users` (
 -- Dumping data untuk tabel `users`
 --
 
-INSERT INTO `users` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `role`, `foto_profil`, `created_at`) VALUES
-(1, 'admin', '123', 'Administrator Utama', 'admin@sekolah.sch.id', 'admin', 'default.jpg', '2026-01-02 11:55:42'),
-(2, 'guru1', '123', 'Budi Santoso, S.Pd', 'budi@sekolah.sch.id', 'guru', 'default.jpg', '2026-01-02 11:55:42'),
-(3, 'guru2', '123', 'Siti Aminah, M.Pd', 'siti@sekolah.sch.id', 'guru', 'default.jpg', '2026-01-02 11:55:42'),
-(4, 'siswa1', '123', 'Ahmad Fikri', 'fikri@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
-(5, 'siswa2', '123', 'Dewi Sartika', 'dewi@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
-(6, 'siswa3', '123', 'Rudi Hartono', 'rudi@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
-(7, 'guru3', '123', 'Dodi Kusuma, S.Kom', 'dodi@sekolah.sch.id', 'guru', 'default.jpg', '2026-01-02 11:55:42'),
-(8, 'siswa4', '123', 'Sinta Nuriyah', 'sinta@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
-(9, 'siswa5', '123', 'Joko Anwar', 'joko@gmail.com', 'siswa', 'default.jpg', '2026-01-02 11:55:42'),
-(10, 'admin2', '123', 'Staff Tata Usaha', 'tu@sekolah.sch.id', 'admin', 'default.jpg', '2026-01-02 11:55:42');
+INSERT INTO `users` (`id_user`, `username`, `password`, `nama_lengkap`, `email`, `role`, `kelas_id`, `foto_profil`, `created_at`) VALUES
+(1, 'admin', '123', 'Administrator Utama', 'admin@sekolah.sch.id', 'admin', NULL, 'default.jpg', '2026-01-02 11:55:42'),
+(2, 'guru1', '123', 'Budi Santoso, S.Pd', 'budi@sekolah.sch.id', 'guru', NULL, 'default.jpg', '2026-01-02 11:55:42'),
+(3, 'guru2', '123', 'Siti Aminah, M.Pd', 'siti@sekolah.sch.id', 'guru', NULL, 'default.jpg', '2026-01-02 11:55:42'),
+(4, 'siswa1', '123', 'Ahmad Fikri', 'fikri@gmail.com', 'siswa', 1, 'default.jpg', '2026-01-02 11:55:42'),
+(5, 'siswa2', '123', 'Dewi Sartika', 'dewi@gmail.com', 'siswa', 1, 'default.jpg', '2026-01-02 11:55:42'),
+(6, 'siswa3', '123', 'Rudi Hartono', 'rudi@gmail.com', 'siswa', 1, 'default.jpg', '2026-01-02 11:55:42'),
+(7, 'guru3', '123', 'Dodi Kusuma, S.Kom', 'dodi@sekolah.sch.id', 'guru', NULL, 'default.jpg', '2026-01-02 11:55:42'),
+(8, 'siswa4', '123', 'Sinta Nuriyah', 'sinta@gmail.com', 'siswa', 1, 'default.jpg', '2026-01-02 11:55:42'),
+(9, 'siswa5', '123', 'Joko Anwar', 'joko@gmail.com', 'siswa', 1, 'default.jpg', '2026-01-02 11:55:42'),
+(10, 'admin2', '123', 'Staff Tata Usaha', 'tu@sekolah.sch.id', 'admin', NULL, 'default.jpg', '2026-01-02 11:55:42');
 
 --
 -- Indexes for dumped tables
@@ -348,12 +361,10 @@ ALTER TABLE `nilai`
   ADD KEY `mapel_id` (`mapel_id`);
 
 --
--- Indeks untuk tabel `pengumpulan`
+-- Indeks untuk tabel `pengumpulan_tugas`
 --
-ALTER TABLE `pengumpulan`
-  ADD PRIMARY KEY (`id_pengumpulan`),
-  ADD KEY `tugas_id` (`tugas_id`),
-  ADD KEY `siswa_id` (`siswa_id`);
+ALTER TABLE `pengumpulan_tugas`
+  ADD PRIMARY KEY (`id_pengumpulan`);
 
 --
 -- Indeks untuk tabel `pengumuman`
@@ -385,8 +396,7 @@ ALTER TABLE `siswa_detail`
 -- Indeks untuk tabel `tugas`
 --
 ALTER TABLE `tugas`
-  ADD PRIMARY KEY (`id_tugas`),
-  ADD KEY `mapel_id` (`mapel_id`);
+  ADD PRIMARY KEY (`id_tugas`);
 
 --
 -- Indeks untuk tabel `users`
@@ -403,25 +413,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `absensi`
 --
 ALTER TABLE `absensi`
-  MODIFY `id_absensi` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_absensi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT untuk tabel `kelas`
 --
 ALTER TABLE `kelas`
-  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `mapel`
 --
 ALTER TABLE `mapel`
-  MODIFY `id_mapel` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id_mapel` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT untuk tabel `materi`
 --
 ALTER TABLE `materi`
-  MODIFY `id_materi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_materi` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `nilai`
@@ -430,10 +440,10 @@ ALTER TABLE `nilai`
   MODIFY `id_nilai` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT untuk tabel `pengumpulan`
+-- AUTO_INCREMENT untuk tabel `pengumpulan_tugas`
 --
-ALTER TABLE `pengumpulan`
-  MODIFY `id_pengumpulan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+ALTER TABLE `pengumpulan_tugas`
+  MODIFY `id_pengumpulan` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT untuk tabel `pengumuman`
@@ -445,31 +455,31 @@ ALTER TABLE `pengumuman`
 -- AUTO_INCREMENT untuk tabel `rps`
 --
 ALTER TABLE `rps`
-  MODIFY `id_rps` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_rps` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT untuk tabel `semester`
 --
 ALTER TABLE `semester`
-  MODIFY `id_semester` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_semester` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `siswa_detail`
 --
 ALTER TABLE `siswa_detail`
-  MODIFY `id_detail` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_detail` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT untuk tabel `tugas`
 --
 ALTER TABLE `tugas`
-  MODIFY `id_tugas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_tugas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Ketidakleluasaan untuk tabel pelimpahan (Dumped Tables)
@@ -496,24 +506,11 @@ ALTER TABLE `nilai`
   ADD CONSTRAINT `nilai_ibfk_2` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id_mapel`) ON DELETE CASCADE;
 
 --
--- Ketidakleluasaan untuk tabel `pengumpulan`
---
-ALTER TABLE `pengumpulan`
-  ADD CONSTRAINT `pengumpulan_ibfk_1` FOREIGN KEY (`tugas_id`) REFERENCES `tugas` (`id_tugas`) ON DELETE CASCADE,
-  ADD CONSTRAINT `pengumpulan_ibfk_2` FOREIGN KEY (`siswa_id`) REFERENCES `users` (`id_user`) ON DELETE CASCADE;
-
---
 -- Ketidakleluasaan untuk tabel `siswa_detail`
 --
 ALTER TABLE `siswa_detail`
   ADD CONSTRAINT `siswa_detail_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id_user`) ON DELETE CASCADE,
   ADD CONSTRAINT `siswa_detail_ibfk_2` FOREIGN KEY (`kelas_id`) REFERENCES `kelas` (`id_kelas`) ON DELETE SET NULL;
-
---
--- Ketidakleluasaan untuk tabel `tugas`
---
-ALTER TABLE `tugas`
-  ADD CONSTRAINT `tugas_ibfk_1` FOREIGN KEY (`mapel_id`) REFERENCES `mapel` (`id_mapel`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

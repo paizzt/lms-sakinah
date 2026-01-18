@@ -1,132 +1,69 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body, h1, h2, h3, h4, h5, h6, p, a, span, div, table, th, td, input, select, textarea, button {
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+    </style>
 <?php
-// --- LOGIKA DATA ---
+// STATISTIK RINGKAS
+$jml_materi = mysqli_num_rows(mysqli_query($koneksi, "SELECT * FROM materi"));
 
-// 1. Ambil Data Kelas (Untuk Filter)
-$q_kelas = mysqli_query($koneksi, "SELECT * FROM kelas ORDER BY nama_kelas ASC");
-
-// 2. Ambil Data Mapel (Untuk Filter - Opsional jika kelas dipilih)
-$q_mapel_list = mysqli_query($koneksi, "SELECT * FROM mapel ORDER BY nama_mapel ASC");
-
-// 3. Logika Filter
-$where_clause = "";
-if(isset($_GET['kelas']) && $_GET['kelas'] != ""){
-    $f_kelas = $_GET['kelas'];
-    $where_clause .= " AND mapel.kelas_id = '$f_kelas'";
-}
-if(isset($_GET['mapel']) && $_GET['mapel'] != ""){
-    $f_mapel = $_GET['mapel'];
-    $where_clause .= " AND mapel.id_mapel = '$f_mapel'";
-}
-
-// 4. Hitung Total Materi
-$jml_materi = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_materi FROM materi"));
+// AMBIL DATA MAPEL UNTUK DROPDOWN (JOIN KELAS AGAR JELAS)
+$q_mapel = mysqli_query($koneksi, "SELECT mapel.*, kelas.nama_kelas 
+                                   FROM mapel 
+                                   JOIN kelas ON mapel.kelas_id = kelas.id_kelas 
+                                   ORDER BY mapel.nama_mapel ASC");
 ?>
 
 <style>
-    /* Overlay Modal */
-    .modal-overlay {
-        display: none;
-        position: fixed; 
-        z-index: 9999; 
-        left: 0;
-        top: 0;
-        width: 100%; 
-        height: 100%; 
-        background-color: rgba(0,0,0,0.6); 
-        backdrop-filter: blur(3px);
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    }
+    /* Stats & Card */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 30px; }
+    .stat-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-left: 5px solid #FF8C00; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
+    .stat-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+    
+    /* DataTables Custom */
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current, 
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover { background: #FF8C00 !important; color: white !important; border: 1px solid #FF8C00 !important; border-radius: 5px; }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover { background: #ffebee !important; color: #FF8C00 !important; border: 1px solid #FF8C00 !important; }
+    .dataTables_filter, .dataTables_length { display: none; }
+    table.dataTable.no-footer { border-bottom: 1px solid #eee !important; }
 
-    /* Kotak Modal */
-    .modal-box {
-        background-color: #fff;
-        width: 100%;
-        max-width: 700px;
-        border-radius: 20px;
-        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-        animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        overflow: hidden;
-    }
-
-    @keyframes popUp {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-
-    .modal-header {
-        background: linear-gradient(135deg, #FF8C00, #F39C12);
-        color: white;
-        padding: 20px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-    .modal-header h3 { margin: 0; font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    /* Modal Styles */
+    .modal-overlay { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(3px); align-items: center; justify-content: center; padding: 20px; }
+    .modal-box { background-color: #fff; width: 100%; max-width: 600px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.3); animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; }
+    @keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-header { background: linear-gradient(135deg, #FF8C00, #F39C12); color: white; padding: 20px 30px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .modal-header h3 { margin: 0; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     .close-btn { cursor: pointer; font-size: 24px; transition: 0.3s; opacity: 0.8; }
-    .close-btn:hover { opacity: 1; transform: rotate(90deg); }
-
-    .modal-body { padding: 30px; background: #fdfdfd; }
-
-    /* Detail Grid */
-    .detail-row {
-        display: flex;
-        border-bottom: 1px solid #eee;
-        padding: 12px 0;
-    }
-    .detail-label {
-        width: 140px;
-        font-weight: bold;
-        color: #888;
-        font-size: 13px;
-        text-transform: uppercase;
-    }
-    .detail-value {
-        flex: 1;
-        font-weight: 600;
-        color: #333;
-    }
-    .detail-desc {
-        background: #FFF3E0;
-        border: 1px solid #FFE0B2;
-        padding: 15px;
-        border-radius: 10px;
-        color: #E65100;
-        line-height: 1.6;
-        margin-top: 15px;
-        font-size: 14px;
-    }
-
-    .btn-download-modal {
-        display: inline-block;
-        background: #27ae60;
-        color: white;
-        text-decoration: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        margin-top: 20px;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-    .btn-download-modal:hover { background: #219150; transform: translateY(-2px); }
-
-    .btn-close-bottom {
-        display: block;
-        width: 100%;
-        background: #eee;
-        color: #555;
-        border: none;
-        padding: 15px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-        border-top: 1px solid #ddd;
-    }
-    .btn-close-bottom:hover { background: #e0e0e0; color: #333; }
+    .modal-body { padding: 30px; background: #fdfdfd; overflow-y: auto; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #555; font-size: 13px; }
+    .form-control-modal { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; transition: 0.3s; box-sizing: border-box; }
+    .form-control-modal:focus { border-color: #FF8C00; outline: none; box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1); }
+    .btn-submit-modal { width: 100%; background: linear-gradient(to right, #FF8C00, #F39C12); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.3s; margin-top: 10px; }
+    
+    /* Input File Custom */
+    .file-upload-box { position: relative; border: 2px dashed #e0e0e0; border-radius: 10px; padding: 20px; text-align: center; background: #fafafa; transition: 0.3s; cursor: pointer; }
+    .file-upload-box:hover { border-color: #FF8C00; background: #FFF3E0; }
+    .file-upload-box i { font-size: 30px; color: #FF8C00; margin-bottom: 10px; display: block; }
+    .file-upload-box span { font-size: 13px; color: #777; font-weight: 600; }
+    input[type="file"] { display: none; }
 </style>
 
 <div class="content-body" style="margin-top: -20px;">
@@ -134,241 +71,290 @@ $jml_materi = mysqli_num_rows(mysqli_query($koneksi, "SELECT id_materi FROM mate
     <div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F39C12); color: white; padding: 25px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-file-alt"></i> Manajemen Materi</h2>
-                <p style="margin: 5px 0 0 0; opacity: 0.9;">Kelola materi pelajaran yang diupload guru.</p>
+                <h2 style="margin: 0; font-size: 24px;"><i class="fas fa-book"></i> Manajemen Materi</h2>
+                <p style="margin: 5px 0 0 0; opacity: 0.9;">Upload bahan ajar untuk siswa.</p>
             </div>
-            <div style="text-align: right;">
-                <h1 style="margin: 0; font-size: 35px;"><?php echo $jml_materi; ?></h1>
+            <div>
+                <h1 style="margin: 0; font-size: 35px; text-align: right;"><?php echo $jml_materi; ?></h1>
                 <span style="font-size: 12px; opacity: 0.8;">Total Materi</span>
             </div>
         </div>
     </div>
 
-    <div class="modern-form-card" style="padding: 0; width: 100%; max-width: 100%; overflow: hidden;">
+    <div class="modern-form-card" style="padding: 0; overflow: hidden; width: 100%; max-width: 100%;">
         
-        <div style="padding: 20px; border-bottom: 1px solid #eee; background: #fff;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 15px;">
-                
-                <form method="GET" action="" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <select name="kelas" onchange="this.form.submit()" style="padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; color: #555; cursor: pointer; min-width: 130px;">
-                        <option value="">- Semua Kelas -</option>
-                        <?php mysqli_data_seek($q_kelas, 0); while($k = mysqli_fetch_array($q_kelas)){ ?>
-                            <option value="<?php echo $k['id_kelas']; ?>" <?php if(isset($_GET['kelas']) && $_GET['kelas'] == $k['id_kelas']){ echo "selected"; } ?>>
-                                <?php echo $k['nama_kelas']; ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-
-                    <select name="mapel" onchange="this.form.submit()" style="padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; color: #555; cursor: pointer; min-width: 150px;">
-                        <option value="">- Semua Mapel -</option>
-                        <?php mysqli_data_seek($q_mapel_list, 0); while($m = mysqli_fetch_array($q_mapel_list)){ ?>
-                            <option value="<?php echo $m['id_mapel']; ?>" <?php if(isset($_GET['mapel']) && $_GET['mapel'] == $m['id_mapel']){ echo "selected"; } ?>>
-                                <?php echo $m['nama_mapel']; ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </form>
-
+        <div style="padding: 20px; background: #fdfdfd; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+            <h4 style="margin: 0; color: #555;">Daftar Materi Pembelajaran</h4>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <select id="customLength" style="padding: 10px; border: 1px solid #ddd; border-radius: 8px;"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
                 <div style="position: relative;">
-                    <input type="text" id="searchMateri" onkeyup="searchTable()" placeholder="Cari Judul Materi..." style="padding: 10px 15px 10px 35px; border: 1px solid #FF8C00; border-radius: 5px; outline: none; width: 220px;">
-                    <i class="fas fa-search" style="position: absolute; left: 12px; top: 13px; color: #FF8C00;"></i>
+                    <i class="fas fa-search" style="position: absolute; left: 10px; top: 12px; color: #aaa;"></i>
+                    <input type="text" id="customSearch" placeholder="Cari materi..." style="padding: 10px 10px 10px 35px; border: 1px solid #ddd; border-radius: 20px; outline: none; width: 200px;">
                 </div>
-            </div>
-
-            <div>
-                <a href="materi_tambah.php" class="btn-tambah" style="background: white; color: #333; border: 1px solid #333; text-decoration: none; padding: 10px 25px; border-radius: 5px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s; font-size: 14px;" onmouseover="this.style.background='#333'; this.style.color='white';" onmouseout="this.style.background='white'; this.style.color='#333';">
-                    <i class="fas fa-plus"></i> UPLOAD MATERI
-                </a>
+                <button onclick="bukaModalTambah()" class="btn-tambah" style="background: #27ae60; color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                    <i class="fas fa-plus"></i> <span style="font-size: 13px;">Baru</span>
+                </button>
             </div>
         </div>
 
-        <div class="table-responsive">
+        <div class="table-responsive" style="padding: 0 0 10px 0;">
             <table class="table table-striped" id="materiTable" style="width: 100%; border-collapse: collapse;">
-                <thead style="background: white; color: #333; border-bottom: 2px solid #333;">
+                <thead style="background: #FFF3E0; color: #E65100;">
                     <tr>
-                        <th style="padding: 15px 20px; text-align: left; width: 50px; border-right: 1px solid #eee;">NO</th>
-                        <th style="padding: 15px 20px; text-align: left; border-right: 1px solid #eee;">JUDUL MATERI</th>
-                        <th style="padding: 15px 20px; text-align: left; border-right: 1px solid #eee;">MAPEL & KELAS</th>
-                        <th style="padding: 15px 20px; text-align: center; border-right: 1px solid #eee;">TANGGAL</th>
-                        <th style="padding: 15px 20px; text-align: center;">AKSI</th>
+                        <th style="padding: 15px; width: 5%;">No</th>
+                        <th style="padding: 15px;">Judul Materi</th>
+                        <th style="padding: 15px;">Mapel & Kelas</th>
+                        <th style="padding: 15px; text-align: center;">Tanggal</th>
+                        <th style="padding: 15px; text-align: center;">File / Link</th>
+                        <th style="padding: 15px; text-align: center;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php 
                     $no = 1;
-                    // Query Join: Materi -> Mapel -> Kelas & Users (Guru)
-                    // Mengambil semua data yang dibutuhkan untuk tabel & modal
-                    $query = mysqli_query($koneksi, "SELECT materi.*, mapel.nama_mapel, kelas.nama_kelas, users.nama_lengkap AS nama_guru 
+                    $query = mysqli_query($koneksi, "SELECT materi.*, mapel.nama_mapel, kelas.nama_kelas 
                                                      FROM materi 
                                                      JOIN mapel ON materi.mapel_id = mapel.id_mapel 
-                                                     LEFT JOIN kelas ON mapel.kelas_id = kelas.id_kelas 
-                                                     LEFT JOIN users ON mapel.guru_id = users.id_user 
-                                                     WHERE 1=1 $where_clause
+                                                     JOIN kelas ON mapel.kelas_id = kelas.id_kelas 
                                                      ORDER BY materi.tanggal_upload DESC");
-                    
-                    if(mysqli_num_rows($query) > 0){
-                        while($d = mysqli_fetch_array($query)){
-                            // Menentukan Jenis File (Link atau Upload)
-                            $tipe_file = (!empty($d['link_materi'])) ? 'LINK' : 'FILE';
-                            $icon_file = (!empty($d['link_materi'])) ? 'fa-link' : 'fa-file-pdf';
-                            $warna_badge = (!empty($d['link_materi'])) ? '#e1f5fe' : '#fff3e0';
-                            $text_badge = (!empty($d['link_materi'])) ? '#0288d1' : '#e65100';
+                    while($d = mysqli_fetch_array($query)){
+                        $tgl = date('d-m-Y', strtotime($d['tanggal_upload']));
                     ?>
                     <tr style="border-bottom: 1px solid #f0f0f0;">
-                        <td style="padding: 15px 20px; color: #777; border-right: 1px solid #eee;"><?php echo $no++; ?></td>
+                        <td style="padding: 15px; color: #777;"><?php echo $no++; ?></td>
                         
-                        <td style="padding: 15px 20px; border-right: 1px solid #eee;">
-                            <span style="font-weight: 600; color: #333; display: block; font-size: 15px;"><?php echo $d['judul_materi']; ?></span>
-                            <small style="background: <?php echo $warna_badge; ?>; color: <?php echo $text_badge; ?>; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 10px; margin-top: 5px; display: inline-flex; align-items: center; gap: 4px;">
-                                <i class="fas <?php echo $icon_file; ?>"></i> <?php echo $tipe_file; ?>
-                            </small>
-                        </td>
-                        
-                        <td style="padding: 15px 20px; border-right: 1px solid #eee;">
-                            <span style="display: block; font-weight: 500; color: #333;"><?php echo $d['nama_mapel']; ?></span>
-                            <div style="margin-top: 4px; font-size: 12px; color: #777;">
-                                <i class="fas fa-school" style="color: #FF8C00;"></i> <?php echo $d['nama_kelas']; ?> &bull; 
-                                <i class="fas fa-user" style="color: #999;"></i> <?php echo substr($d['nama_guru'], 0, 15); ?>..
-                            </div>
+                        <td style="padding: 15px; font-weight: 600; color: #333;">
+                            <?php echo $d['judul']; ?>
+                            <div style="font-size: 11px; color: #999; margin-top: 3px;"><?php echo substr($d['deskripsi'], 0, 40) . '...'; ?></div>
                         </td>
 
-                        <td style="padding: 15px 20px; text-align: center; border-right: 1px solid #eee; color: #555; font-size: 13px;">
-                            <?php echo date('d M Y', strtotime($d['tanggal_upload'])); ?>
+                        <td style="padding: 15px;">
+                            <span style="display: block; font-weight: bold; color: #555;"><?php echo $d['nama_mapel']; ?></span>
+                            <span style="background: #e3f2fd; color: #1565c0; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: bold;"><?php echo $d['nama_kelas']; ?></span>
                         </td>
 
-                        <td style="padding: 15px 20px; text-align: center;">
-                            <button class="btn-action detail" 
-                                onclick="bukaModal(
-                                    '<?php echo addslashes($d['judul_materi']); ?>',
-                                    '<?php echo $d['nama_mapel']; ?>',
-                                    '<?php echo $d['nama_kelas']; ?>',
-                                    '<?php echo $d['nama_guru']; ?>',
-                                    '<?php echo date('d F Y H:i', strtotime($d['tanggal_upload'])); ?>',
-                                    `<?php echo addslashes(nl2br($d['deskripsi'])); ?>`,
-                                    '<?php echo $d['file_materi']; ?>',
-                                    '<?php echo $d['link_materi']; ?>'
-                                )"
-                                title="Lihat Detail" style="background: #e3f2fd; color: #1976d2; padding: 8px 12px; border: none; border-radius: 6px; margin-right: 5px; cursor: pointer;">
+                        <td style="padding: 15px; text-align: center; color: #555;"><?php echo $tgl; ?></td>
+
+                        <td style="padding: 15px; text-align: center;">
+                            <?php if($d['tipe'] == 'file') { ?>
+                                <a href="../uploads/materi/<?php echo $d['file_url']; ?>" target="_blank" style="text-decoration: none; background: #e8f5e9; color: #2e7d32; padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold;">
+                                    <i class="fas fa-download"></i> Unduh
+                                </a>
+                            <?php } else { ?>
+                                <a href="<?php echo $d['file_url']; ?>" target="_blank" style="text-decoration: none; background: #ffebee; color: #c62828; padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold;">
+                                    <i class="fas fa-external-link-alt"></i> Buka Link
+                                </a>
+                            <?php } ?>
+                        </td>
+
+                        <td style="padding: 15px; text-align: center;">
+                            <button onclick="bukaModalLihat(
+                                '<?php echo addslashes($d['judul']); ?>',
+                                '<?php echo $d['nama_mapel']; ?>',
+                                '<?php echo $d['nama_kelas']; ?>',
+                                '<?php echo $tgl; ?>',
+                                '<?php echo addslashes($d['deskripsi']); ?>'
+                            )" class="btn-action" style="background: #e3f2fd; color: #1565c0; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; margin-right: 3px;">
                                 <i class="fas fa-eye"></i>
                             </button>
 
-                            <a href="materi_edit.php?id=<?php echo $d['id_materi']; ?>" class="btn-action edit" title="Edit" style="background: #FFF3E0; color: #E65100; padding: 8px 12px; border-radius: 6px; margin-right: 5px; display: inline-block;">
+                            <button onclick="bukaModalEdit(
+                                '<?php echo $d['id_materi']; ?>',
+                                '<?php echo addslashes($d['judul']); ?>',
+                                '<?php echo $d['mapel_id']; ?>',
+                                '<?php echo $d['tipe']; ?>',
+                                '<?php echo $d['file_url']; ?>',
+                                '<?php echo addslashes($d['deskripsi']); ?>'
+                            )" class="btn-action edit" style="background: #FFF3E0; color: #E65100; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer; margin-right: 3px;">
                                 <i class="fas fa-edit"></i>
-                            </a>
-                            <a href="materi_hapus.php?id=<?php echo $d['id_materi']; ?>" onclick="return confirm('Yakin ingin menghapus materi ini? File yang diupload juga akan terhapus.')" class="btn-action delete" title="Hapus" style="background: #ffebee; color: #c62828; padding: 8px 12px; border-radius: 6px; display: inline-block;">
+                            </button>
+
+                            <button onclick="konfirmasiHapus('<?php echo $d['id_materi']; ?>')" class="btn-action delete" style="background: #ffebee; color: #c62828; border: none; padding: 8px 10px; border-radius: 6px; cursor: pointer;">
                                 <i class="fas fa-trash"></i>
-                            </a>
+                            </button>
                         </td>
                     </tr>
-                    <?php 
-                        }
-                    } else {
-                        echo "<tr><td colspan='5' style='text-align:center; padding:40px; color:#999; font-style:italic;'>Tidak ada data materi ditemukan.</td></tr>";
-                    }
-                    ?>
+                    <?php } ?>
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 
-<div id="detailModal" class="modal-overlay">
+<div id="modalTambah" class="modal-overlay">
     <div class="modal-box">
-        <div class="modal-header">
-            <h3><i class="fas fa-book-reader"></i> Detail Materi</h3>
-            <span class="close-btn" onclick="tutupModal()">&times;</span>
-        </div>
-        
+        <div class="modal-header"><h3><i class="fas fa-cloud-upload-alt"></i> Tambah Materi</h3><span class="close-btn" onclick="tutupModalTambah()">&times;</span></div>
         <div class="modal-body">
-            <div class="detail-row">
-                <div class="detail-label">JUDUL MATERI</div>
-                <div class="detail-value" id="d_judul">-</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">MATA PELAJARAN</div>
-                <div class="detail-value" id="d_mapel">-</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">KELAS</div>
-                <div class="detail-value" id="d_kelas">-</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">PENGUPLOAD</div>
-                <div class="detail-value" id="d_guru">-</div>
-            </div>
-            <div class="detail-row">
-                <div class="detail-label">TANGGAL</div>
-                <div class="detail-value" id="d_tanggal">-</div>
-            </div>
-
-            <div class="detail-desc" id="d_deskripsi">
-                Tidak ada deskripsi.
-            </div>
-
-            <div id="area_download" style="text-align: center;">
+            <form action="materi_aksi.php" method="POST" enctype="multipart/form-data">
+                
+                <div class="form-group"><label>Judul Materi</label><input type="text" name="judul" class="form-control-modal" placeholder="Contoh: Pengantar Aljabar" required></div>
+                
+                <div class="form-group"><label>Mata Pelajaran (Kelas Otomatis)</label>
+                    <select name="mapel" class="form-control-modal" required>
+                        <option value="">-- Pilih Mapel --</option>
+                        <?php mysqli_data_seek($q_mapel, 0); while($m=mysqli_fetch_array($q_mapel)){ echo "<option value='".$m['id_mapel']."'>".$m['nama_mapel']." - ".$m['nama_kelas']."</option>"; } ?>
+                    </select>
                 </div>
-        </div>
+                
+                <div class="form-group"><label>Deskripsi / Instruksi</label><textarea name="deskripsi" class="form-control-modal" rows="3"></textarea></div>
 
-        <button onclick="tutupModal()" class="btn-close-bottom">TUTUP DETAIL</button>
+                <div class="form-group"><label>Tipe Materi</label>
+                    <select id="tipeUpload" name="tipe" class="form-control-modal" onchange="toggleUploadInput('tambah')">
+                        <option value="file">Upload Dokumen (PDF, Word, PPT)</option>
+                        <option value="link">Tautan Luar (Youtube, Zoom, GDrive)</option>
+                    </select>
+                </div>
+
+                <div id="boxFile_tambah" class="form-group">
+                    <label>Pilih File</label>
+                    <input type="file" name="file_materi" id="fileInp" onchange="updateFileName('fileInp','fileNameDisp')">
+                    <label for="fileInp" class="file-upload-box"><i class="fas fa-file-upload"></i><span id="fileNameDisp">Klik cari file...</span></label>
+                </div>
+
+                <div id="boxLink_tambah" class="form-group" style="display: none;">
+                    <label>URL / Link Materi</label>
+                    <input type="text" name="link_materi" class="form-control-modal" placeholder="https://youtube.com/...">
+                </div>
+
+                <button type="submit" class="btn-submit-modal"><i class="fas fa-save"></i> SIMPAN MATERI</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modalEdit" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header"><h3><i class="fas fa-edit"></i> Edit Materi</h3><span class="close-btn" onclick="tutupModalEdit()">&times;</span></div>
+        <div class="modal-body">
+            <form action="materi_update.php" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="id_materi" id="edit_id">
+                
+                <div class="form-group"><label>Judul Materi</label><input type="text" name="judul" id="edit_judul" class="form-control-modal" required></div>
+                
+                <div class="form-group"><label>Mata Pelajaran</label>
+                    <select name="mapel" id="edit_mapel" class="form-control-modal" required>
+                        <option value="">-- Pilih Mapel --</option>
+                        <?php mysqli_data_seek($q_mapel, 0); while($m=mysqli_fetch_array($q_mapel)){ echo "<option value='".$m['id_mapel']."'>".$m['nama_mapel']." - ".$m['nama_kelas']."</option>"; } ?>
+                    </select>
+                </div>
+                
+                <div class="form-group"><label>Deskripsi</label><textarea name="deskripsi" id="edit_deskripsi" class="form-control-modal" rows="3"></textarea></div>
+
+                <div class="form-group"><label>Tipe Materi</label>
+                    <select id="edit_tipe" name="tipe" class="form-control-modal" onchange="toggleUploadInput('edit')">
+                        <option value="file">Upload Dokumen</option>
+                        <option value="link">Tautan Luar</option>
+                    </select>
+                </div>
+
+                <div id="boxFile_edit" class="form-group">
+                    <label>Ganti File (Opsional)</label>
+                    <input type="file" name="file_materi" id="fileInpEdit" onchange="updateFileName('fileInpEdit','fileNameDispEdit')">
+                    <label for="fileInpEdit" class="file-upload-box"><i class="fas fa-file-upload"></i><span id="fileNameDispEdit">Upload baru untuk ganti...</span></label>
+                </div>
+
+                <div id="boxLink_edit" class="form-group" style="display: none;">
+                    <label>URL / Link Materi</label>
+                    <input type="text" name="link_materi" id="edit_link" class="form-control-modal">
+                </div>
+
+                <button type="submit" class="btn-submit-modal"><i class="fas fa-save"></i> SIMPAN PERUBAHAN</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="modalLihat" class="modal-overlay">
+    <div class="modal-box" style="max-width: 500px;">
+        <div class="modal-header"><h3><i class="fas fa-info-circle"></i> Detail Materi</h3><span class="close-btn" onclick="tutupModalLihat()">&times;</span></div>
+        <div class="modal-body">
+            <h3 id="view_judul" style="margin-top: 0; color: #E65100;">-</h3>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <span id="view_mapel" style="background: #FFF3E0; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; color: #E65100;">-</span>
+                <span id="view_kelas" style="background: #e3f2fd; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; color: #1565c0;">-</span>
+                <span id="view_tgl" style="background: #f5f5f5; padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 12px; color: #777;">-</span>
+            </div>
+            <div style="background: #fafafa; padding: 15px; border-radius: 10px; border: 1px dashed #ddd;">
+                <label style="font-weight: bold; font-size: 12px; color: #999;">DESKRIPSI:</label>
+                <p id="view_deskripsi" style="margin: 5px 0 0 0; color: #333; line-height: 1.6;">-</p>
+            </div>
+            <button onclick="tutupModalLihat()" class="btn-submit-modal" style="margin-top: 20px; background: #555;">Tutup</button>
+        </div>
     </div>
 </div>
 
 <script>
-    function bukaModal(judul, mapel, kelas, guru, tanggal, deskripsi, file, link) {
-        document.getElementById('d_judul').innerText = judul;
-        document.getElementById('d_mapel').innerText = mapel;
-        document.getElementById('d_kelas').innerText = kelas;
-        document.getElementById('d_guru').innerText = guru;
-        document.getElementById('d_tanggal').innerText = tanggal;
-        document.getElementById('d_deskripsi').innerHTML = deskripsi;
+    // --- DataTables ---
+    $(document).ready(function() {
+        var table = $('#materiTable').DataTable({ "dom": 'rtip', "pageLength": 10, "order": [] });
+        $('#customSearch').on('keyup', function() { table.search(this.value).draw(); });
+        $('#customLength').on('change', function() { table.page.len(this.value).draw(); });
+    });
 
-        // Logika Tombol Download / Link
-        var area = document.getElementById('area_download');
-        area.innerHTML = ""; // Reset
-
-        if(file != "") {
-            area.innerHTML = `<a href="../uploads/materi/${file}" target="_blank" class="btn-download-modal">
-                                <i class="fas fa-file-download"></i> Download File Materi
-                              </a>`;
-        } else if (link != "") {
-            area.innerHTML = `<a href="${link}" target="_blank" class="btn-download-modal" style="background: #3498db;">
-                                <i class="fas fa-external-link-alt"></i> Buka Link Materi
-                              </a>`;
+    // --- Toggle Input File vs Link ---
+    function toggleUploadInput(mode) {
+        var tipe = (mode == 'tambah') ? document.getElementById('tipeUpload').value : document.getElementById('edit_tipe').value;
+        if(tipe == 'file'){
+            document.getElementById('boxFile_' + mode).style.display = 'block';
+            document.getElementById('boxLink_' + mode).style.display = 'none';
         } else {
-            area.innerHTML = `<span style="display:inline-block; margin-top:20px; color:#999; font-style:italic;">Tidak ada file lampiran.</span>`;
-        }
-
-        document.getElementById('detailModal').style.display = "flex";
-    }
-
-    function tutupModal() {
-        document.getElementById('detailModal').style.display = "none";
-    }
-
-    window.onclick = function(event) {
-        if (event.target == document.getElementById('detailModal')) {
-            tutupModal();
+            document.getElementById('boxFile_' + mode).style.display = 'none';
+            document.getElementById('boxLink_' + mode).style.display = 'block';
         }
     }
 
-    function searchTable() {
-        var input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("searchMateri");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("materiTable");
-        tr = table.getElementsByTagName("tr");
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[1]; // Kolom Judul
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = "";
-                } else {
-                    tr[i].style.display = "none";
-                }
-            }       
-        }
+    function updateFileName(inputId, dispId) {
+        document.getElementById(dispId).innerText = document.getElementById(inputId).files[0].name;
     }
+
+    // --- Modal Functions ---
+    function bukaModalTambah() { document.getElementById('modalTambah').style.display = "flex"; }
+    function tutupModalTambah() { document.getElementById('modalTambah').style.display = "none"; }
+    
+    function bukaModalLihat(judul, mapel, kelas, tgl, deskripsi) {
+        document.getElementById('view_judul').innerText = judul;
+        document.getElementById('view_mapel').innerText = mapel;
+        document.getElementById('view_kelas').innerText = kelas;
+        document.getElementById('view_tgl').innerText = tgl;
+        document.getElementById('view_deskripsi').innerText = deskripsi;
+        document.getElementById('modalLihat').style.display = "flex";
+    }
+    function tutupModalLihat() { document.getElementById('modalLihat').style.display = "none"; }
+
+    function bukaModalEdit(id, judul, mapel, tipe, fileUrl, deskripsi) {
+        document.getElementById('edit_id').value = id;
+        document.getElementById('edit_judul').value = judul;
+        document.getElementById('edit_mapel').value = mapel;
+        document.getElementById('edit_deskripsi').value = deskripsi;
+        document.getElementById('edit_tipe').value = tipe;
+        
+        // Atur tampilan input berdasarkan tipe
+        if(tipe == 'link'){
+            document.getElementById('edit_link').value = fileUrl;
+        }
+        toggleUploadInput('edit'); // Refresh tampilan input
+
+        document.getElementById('modalEdit').style.display = "flex";
+    }
+    function tutupModalEdit() { document.getElementById('modalEdit').style.display = "none"; }
+
+    window.onclick = function(e) {
+        if(e.target == document.getElementById('modalTambah')) tutupModalTambah();
+        if(e.target == document.getElementById('modalEdit')) tutupModalEdit();
+        if(e.target == document.getElementById('modalLihat')) tutupModalLihat();
+    }
+
+    // --- Hapus ---
+    function konfirmasiHapus(id) {
+        Swal.fire({ title: 'Hapus materi ini?', text: "File akan dihapus permanen!", icon: 'warning', showCancelButton: true, confirmButtonColor: '#c62828', confirmButtonText: 'Ya, Hapus!' }).then((result) => {
+            if (result.isConfirmed) { window.location.href = 'materi_hapus.php?id=' + id; }
+        })
+    }
+
+    // --- Notif ---
+    <?php if(isset($_SESSION['notif_status'])) { ?>
+        Swal.fire({ title: '<?php echo ($_SESSION['notif_status'] == 'sukses') ? "BERHASIL!" : "GAGAL!"; ?>', text: '<?php echo $_SESSION['notif_pesan']; ?>', icon: '<?php echo ($_SESSION['notif_status'] == 'sukses') ? "success" : "error"; ?>', confirmButtonColor: '#FF8C00' });
+    <?php unset($_SESSION['notif_status']); unset($_SESSION['notif_pesan']); } ?>
 </script>
 
 <?php include 'footer.php'; ?>

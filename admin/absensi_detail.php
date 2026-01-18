@@ -1,6 +1,6 @@
 <?php include 'header.php'; ?>
 <?php include 'sidebar.php'; ?>
-
+<link rel="stylesheet" href="./assets/css/style.css">
 <?php
 // TANGKAP ID MAPEL DARI URL
 $id_mapel = isset($_GET['id']) ? $_GET['id'] : '';

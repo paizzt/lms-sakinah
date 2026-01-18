@@ -2,32 +2,34 @@
 session_start();
 include '../config/koneksi.php';
 
-// Validasi Admin
 if($_SESSION['role'] != "admin"){ header("location:../index.php"); exit(); }
 
-// Tangkap Data
-$id = $_POST['id_mapel'];
-$kode = $_POST['kode_mapel'];
-$nama = $_POST['nama_mapel'];
-$kelas = $_POST['kelas_id'];
-$guru = $_POST['guru_id'];
-$hari = $_POST['hari'];
-$jam_mulai = $_POST['jam_mulai'];
-$jam_selesai = $_POST['jam_selesai'];
+$id     = $_POST['id_mapel'];
+$kode   = mysqli_real_escape_string($koneksi, $_POST['kode_mapel']);
+$nama   = mysqli_real_escape_string($koneksi, $_POST['nama_mapel']);
+$kelas  = $_POST['kelas_id'];
+$guru   = $_POST['guru_id'];
+$hari   = $_POST['hari'];
+$mulai  = $_POST['jam_mulai'];
+$selesai= $_POST['jam_selesai'];
 
-// Query Update
 $query = "UPDATE mapel SET 
             kode_mapel='$kode', 
             nama_mapel='$nama', 
-            kelas_id='$kelas', 
             guru_id='$guru', 
+            kelas_id='$kelas', 
             hari='$hari', 
-            jam_mulai='$jam_mulai', 
-            jam_selesai='$jam_selesai' 
+            jam_mulai='$mulai', 
+            jam_selesai='$selesai' 
           WHERE id_mapel='$id'";
 
-mysqli_query($koneksi, $query);
+if(mysqli_query($koneksi, $query)){
+    $_SESSION['notif_status'] = 'sukses';
+    $_SESSION['notif_pesan']  = 'Data Mapel berhasil diperbarui!';
+} else {
+    $_SESSION['notif_status'] = 'error';
+    $_SESSION['notif_pesan']  = 'Gagal memperbarui data!';
+}
 
-// Kembali ke halaman mapel
 header("location:mapel.php");
 ?>

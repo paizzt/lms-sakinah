@@ -33,7 +33,7 @@ $nama_kelas = $d_siswa['nama_kelas'] ? $d_siswa['nama_kelas'] : "Belum ada kelas
         </li>
         
         <li>
-            <a href="index.php"> 
+            <a href="mapel.php"> 
                 <i class="fas fa-book"></i> <span>Mata Pelajaran</span>
             </a>
         </li>

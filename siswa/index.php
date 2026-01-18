@@ -1,87 +1,231 @@
-<?php include 'header.php'; ?>
-
-<div class="welcome-banner" style="background: linear-gradient(to right, #FF8C00, #F4A460); color: white; padding: 30px; border-radius: 15px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(255, 140, 0, 0.2);">
-    <h2 style="margin: 0; font-size: 28px;">Halo, <?php echo $_SESSION['nama_lengkap']; ?>! </h2>
-    <p style="margin: 5px 0 0 0; opacity: 0.9;">Selamat datang di Ruang Belajar Digital. Cek jadwal dan tugasmu hari ini.</p>
-</div>
-
 <?php 
-$query_info = mysqli_query($koneksi, "SELECT * FROM pengumuman WHERE tujuan IN ('semua', 'siswa') ORDER BY tanggal_dibuat DESC LIMIT 1");
-if(mysqli_num_rows($query_info) > 0){
-    $info = mysqli_fetch_array($query_info);
+// Sertakan file koneksi dan struktur halaman
+include 'header.php'; 
+include 'sidebar.php'; 
+
+// Pastikan user sudah login sebagai siswa
+if($_SESSION['role'] != 'siswa'){
+    echo "<script>window.location='../index.php';</script>";
+    exit();
+}
+
+$id_siswa = $_SESSION['id_user'];
+
+// --- PERBAIKAN UTAMA DI SINI ---
+// Kita ambil data siswa terbaru dari database untuk mendapatkan kelas_id dan nama
+$query_user = mysqli_query($koneksi, "SELECT * FROM users WHERE id_user='$id_siswa'");
+$data_siswa = mysqli_fetch_array($query_user);
+
+// Simpan ke variabel untuk dipakai di bawah
+$nama_siswa = $data_siswa['nama_lengkap'];
+$id_kelas   = $data_siswa['kelas_id'];
+
+// Cek apakah siswa sudah punya kelas?
+if(empty($id_kelas) || $id_kelas == 0){
+    echo "<div class='content-body' style='margin-top: -20px;'>
+            <div style='padding:40px; text-align:center; background:white; border-radius:15px; box-shadow:0 5px 15px rgba(0,0,0,0.05);'>
+                <img src='../assets/img/warning.svg' style='width:100px; opacity:0.7; margin-bottom:20px;'>
+                <h3 style='color:#333;'>Anda Belum Masuk Kelas</h3>
+                <p style='color:#777;'>Hubungi Guru atau Admin untuk memasukkan akun Anda ke dalam kelas.</p>
+            </div>
+          </div>";
+    include 'footer.php';
+    exit(); // Stop script sampai sini jika tidak punya kelas
+}
+// -------------------------------
+
+// 1. HITUNG JUMLAH MAPEL (Sesuai Kelas Siswa)
+$q_mapel = mysqli_query($koneksi, "SELECT * FROM mapel WHERE kelas_id='$id_kelas'");
+$jml_mapel = mysqli_num_rows($q_mapel);
+
+// 2. HITUNG TUGAS BELUM DIKERJAKAN
+// Logika: Ambil tugas di kelas ini, yang deadline-nya belum lewat, DAN id_tugasnya belum ada di tabel pengumpulan_tugas milik siswa ini
+$sekarang = date('Y-m-d H:i:s');
+$q_tugas_pending = mysqli_query($koneksi, "SELECT t.*, m.nama_mapel FROM tugas t
+                                           JOIN mapel m ON t.mapel_id = m.id_mapel
+                                           WHERE m.kelas_id = '$id_kelas' 
+                                           AND t.tgl_kumpul >= '$sekarang'
+                                           AND t.id_tugas NOT IN (SELECT tugas_id FROM pengumpulan_tugas WHERE siswa_id='$id_siswa')
+                                           ORDER BY t.tgl_kumpul ASC LIMIT 5");
+$jml_tugas = mysqli_num_rows($q_tugas_pending);
+
+// 3. HITUNG PERSENTASE KEHADIRAN
+$q_hadir = mysqli_query($koneksi, "SELECT * FROM absensi WHERE siswa_id='$id_siswa' AND status='H'");
+$jml_hadir = mysqli_num_rows($q_hadir);
+
+// 4. PENGUMUMAN TERBARU
+$q_pengumuman = mysqli_query($koneksi, "SELECT * FROM pengumuman WHERE tujuan IN ('semua','siswa') ORDER BY tanggal DESC LIMIT 3");
 ?>
-    <div style="background-color: #fff; border-left: 5px solid #28a745; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; display: flex; align-items: start; gap: 15px;">
-        <div style="font-size: 24px; color: #28a745;"><i class="fas fa-bullhorn"></i></div>
-        <div>
-            <h4 style="margin: 0 0 5px 0; color: #333;">Pengumuman Terbaru: <?php echo $info['judul']; ?></h4>
-            <p style="margin: 0; color: #666; font-size: 14px;"><?php echo $info['isi']; ?></p>
-            <small style="color: #999; margin-top: 5px; display: block;">Diposting: <?php echo date('d M Y', strtotime($info['tanggal_dibuat'])); ?></small>
-        </div>
-    </div>
-<?php } ?>
-
-<h3 style="margin-bottom: 20px; border-left: 5px solid #FF8C00; padding-left: 10px; color: #444;">📚 Mata Pelajaran Saya</h3>
-
-<div class="mapel-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;">
-    
-    <?php 
-    // Query mengambil mapel siswa + info guru + jadwal
-    // Diurutkan berdasarkan Hari dan Jam
-    $query_mapel = "SELECT mapel.*, users.nama_lengkap 
-                    FROM mapel 
-                    JOIN users ON mapel.guru_id = users.id_user 
-                    WHERE mapel.kelas_id='$id_kelas_siswa'
-                    ORDER BY FIELD(hari, 'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'), jam_mulai ASC";
-    
-    $mapel = mysqli_query($koneksi, $query_mapel);
-    
-    if(mysqli_num_rows($mapel) == 0){
-        echo "<p style='grid-column: 1/-1; text-align: center; color: #777;'>Belum ada mata pelajaran yang dijadwalkan.</p>";
-    }
-    
-    while($m = mysqli_fetch_array($mapel)){
-    ?>
-    
-    <div class="card-mapel" style="background: #fff; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; border: 1px solid #eee; display: flex; flex-direction: column;">
-        
-        <div style="background-color: #fcfcfc; padding: 20px; border-bottom: 1px solid #f0f0f0;">
-            <h4 style="margin: 0; color: #FF8C00; font-size: 18px;"><?php echo $m['nama_mapel']; ?></h4>
-            <div style="margin-top: 10px; font-size: 13px; color: #666; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-chalkboard-teacher"></i> <?php echo $m['nama_lengkap']; ?>
-            </div>
-        </div>
-
-        <div style="padding: 20px; flex: 1;">
-            <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; font-size: 13px; color: #555;">
-                <?php if($m['hari']) { ?>
-                    <div style="margin-bottom: 5px;"><i class="far fa-calendar-alt" style="width: 20px;"></i> <b><?php echo $m['hari']; ?></b></div>
-                    <div><i class="far fa-clock" style="width: 20px;"></i> <?php echo substr($m['jam_mulai'],0,5) . " - " . substr($m['jam_selesai'],0,5); ?></div>
-                <?php } else { ?>
-                    <span style="color: #999;"><i>Jadwal belum diatur</i></span>
-                <?php } ?>
-            </div>
-        </div>
-
-        <div style="padding: 20px; padding-top: 0;">
-            <a href="ruang_kelas.php?id=<?php echo $m['id_mapel']; ?>" class="btn-masuk" style="display: block; width: 100%; text-align: center; background: #FF8C00; color: white; padding: 10px 0; border-radius: 50px; text-decoration: none; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 10px rgba(255, 140, 0, 0.2);">
-                Masuk Kelas <i class="fas fa-arrow-right" style="margin-left: 5px;"></i>
-            </a>
-        </div>
-
-    </div>
-    <?php } ?>
-
-</div>
 
 <style>
-    .card-mapel:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    /* CUSTOM CARD GRADIENT */
+    .card-stat {
+        border-radius: 15px;
+        color: white;
+        padding: 25px;
+        position: relative;
+        overflow: hidden;
+        transition: 0.3s;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border: none;
     }
-    .btn-masuk:hover {
-        background: #e67e00 !important;
-        transform: scale(1.02);
+    .card-stat:hover { transform: translateY(-5px); }
+    
+    .bg-orange { background: linear-gradient(135deg, #FF8C00, #F39C12); }
+    .bg-blue   { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .bg-green  { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    
+    .card-icon-bg {
+        position: absolute;
+        right: -10px;
+        bottom: -10px;
+        font-size: 80px;
+        opacity: 0.2;
+    }
+
+    /* CARD LIST TUGAS */
+    .task-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid #f0f0f0;
+        transition: 0.2s;
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-item:hover { background: #fffcf5; }
+    
+    .task-date {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 10px;
+        background: #ffebee;
+        color: #c62828;
+        font-weight: bold;
     }
 </style>
+
+<div class="content-body" style="margin-top: -20px;">
+
+    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.03); margin-bottom: 30px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+        <div>
+            <h2 style="margin: 0; color: #333; font-weight: 800;">Hai, <?php echo $nama_siswa; ?>! 👋</h2>
+            <p style="margin: 5px 0 0 0; color: #777;">Selamat belajar! Jangan lupa cek tugas yang harus dikumpulkan hari ini.</p>
+        </div>
+        <div style="text-align: right;">
+            <span style="background: #FFF3E0; color: #E65100; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 13px;">
+                <i class="fas fa-user-graduate"></i> SISWA
+            </span>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 30px;">
+        
+        <div class="card-stat bg-orange">
+            <h3 style="margin: 0; font-size: 36px; font-weight: 800;"><?php echo $jml_mapel; ?></h3>
+            <span style="font-size: 14px; opacity: 0.9;">Mata Pelajaran</span>
+            <i class="fas fa-book card-icon-bg"></i>
+        </div>
+
+        <div class="card-stat bg-blue">
+            <h3 style="margin: 0; font-size: 36px; font-weight: 800;"><?php echo $jml_tugas; ?></h3>
+            <span style="font-size: 14px; opacity: 0.9;">Tugas Belum Selesai</span>
+            <i class="fas fa-tasks card-icon-bg"></i>
+        </div>
+
+        <div class="card-stat bg-green">
+            <h3 style="margin: 0; font-size: 36px; font-weight: 800;"><?php echo $jml_hadir; ?></h3>
+            <span style="font-size: 14px; opacity: 0.9;">Total Kehadiran</span>
+            <i class="fas fa-user-check card-icon-bg"></i>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+        
+        <div class="modern-form-card" style="padding: 0; overflow: hidden; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.03);">
+            <div style="padding: 20px; background: #fff; border-bottom: 2px solid #f9f9f9; display:flex; justify-content:space-between; align-items:center;">
+                <h4 style="margin:0; color:#333;"><i class="fas fa-exclamation-circle" style="color: #E65100;"></i> Deadline Terdekat</h4>
+                <a href="tugas.php" style="font-size:12px; text-decoration:none; color:#E65100; font-weight:bold;">Lihat Semua</a>
+            </div>
+            
+            <div style="padding: 0;">
+                <?php 
+                if($jml_tugas > 0){
+                    while($t = mysqli_fetch_array($q_tugas_pending)){
+                        
+                        // Hitung Sisa waktu
+                        $deadline = strtotime($t['tgl_kumpul']);
+                        $now = time();
+                        $diff = $deadline - $now;
+                        
+                        // Jika sudah lewat (negatif), jangan tampilkan di sini atau beri tanda merah
+                        if($diff < 0) {
+                            $sisa_waktu = "Lewat Deadline";
+                            $bg_date = "#ffebee"; $color_date = "#c62828";
+                        } else {
+                            $days = floor($diff / (60 * 60 * 24));
+                            $hours = floor(($diff % (60 * 60 * 24)) / (60 * 60));
+                            
+                            $sisa_waktu = ($days > 0) ? "$days hari lagi" : "$hours jam lagi";
+                            $bg_date = "#e3f2fd"; $color_date = "#1565c0";
+                        }
+                ?>
+                <div class="task-item">
+                    <div>
+                        <div style="font-weight: bold; color: #333; margin-bottom: 3px;"><?php echo $t['judul_tugas']; ?></div>
+                        <div style="font-size: 12px; color: #777;">
+                            <i class="fas fa-book"></i> <?php echo $t['nama_mapel']; ?>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="task-date" style="background: <?php echo $bg_date; ?>; color: <?php echo $color_date; ?>;">
+                            <i class="far fa-clock"></i> <?php echo $sisa_waktu; ?>
+                        </span>
+                        <div style="margin-top: 5px;">
+                            <a href="tugas_detail.php?id=<?php echo $t['id_tugas']; ?>" style="font-size: 11px; text-decoration: none; color: #2980b9; font-weight: bold;">Kerjakan <i class="fas fa-arrow-right"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <?php 
+                    }
+                } else {
+                    echo "<div style='padding:40px; text-align:center;'>
+                            <img src='../assets/img/completed.svg' style='width:80px; opacity:0.6; margin-bottom:15px; display: block; margin-left: auto; margin-right: auto;'>
+                            <p style='color:#999; margin:0;'>Hore! Tidak ada tugas pending.</p>
+                          </div>";
+                }
+                ?>
+            </div>
+        </div>
+
+        <div class="modern-form-card" style="padding: 20px; background: white; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.03);">
+            <h4 style="margin:0 0 20px 0; color:#333; border-bottom:2px solid #f9f9f9; padding-bottom:15px;"><i class="fas fa-bullhorn" style="color: #2980b9;"></i> Papan Informasi</h4>
+            
+            <?php 
+            if(mysqli_num_rows($q_pengumuman) > 0){
+                while($p = mysqli_fetch_array($q_pengumuman)){
+            ?>
+            <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #eee;">
+                <div style="font-size: 11px; color: #999; margin-bottom: 5px;">
+                    <i class="far fa-calendar-alt"></i> <?php echo date('d M Y', strtotime($p['tanggal'])); ?>
+                </div>
+                <h5 style="margin: 0 0 5px 0; font-size: 14px; color: #333;">
+                    <a href="#" style="text-decoration: none; color: #333;"><?php echo $p['judul']; ?></a>
+                </h5>
+                <p style="margin: 0; font-size: 12px; color: #666; line-height: 1.5;">
+                    <?php echo substr($p['isi'], 0, 80); ?>...
+                </p>
+            </div>
+            <?php 
+                }
+            } else {
+                echo "<p style='color:#999; text-align:center;'>Belum ada pengumuman.</p>";
+            }
+            ?>
+        </div>
+
+    </div>
+
+</div>
 
 <?php include 'footer.php'; ?>

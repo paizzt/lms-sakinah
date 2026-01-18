@@ -1,4 +1,4 @@
-<?php 
+<?php
 // 1. Cek Session (Agar tidak error saat dipanggil dari berita.php)
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
@@ -43,6 +43,22 @@ if($foto_db == "" || $foto_db == "default.jpg"){
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body, h1, h2, h3, h4, h5, h6, p, a, span, div, table, th, td, input, select, textarea, button {
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            verflow-x: hidden;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
     
